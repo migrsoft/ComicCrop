@@ -49,7 +49,7 @@ public class ComicCrop extends JFrame {
 	private static final long serialVersionUID = 778619808848682268L;
 	
 	private static final String sMainTitle = "ComicCrop";
-	private static final String sVersion = "1.4.2";
+	private static final String sVersion = "1.4.3";
 	
 	private PicEditor mEditor;
 	private PicList mList;
@@ -100,9 +100,9 @@ public class ComicCrop extends JFrame {
 	
 	private final String menuTaskThread = "线程设置";
 	private final String menuTaskThreadUse1 = "1 线程";
-	private final String menuTaskThreadUse2 = "2 线程";
-	private final String menuTaskThreadUse3 = "3 线程";
-	private final String menuTaskThreadUse4 = "4 线程";
+	private final String menuTaskThreadUse2 = "4 线程";
+	private final String menuTaskThreadUse3 = "8 线程";
+	private final String menuTaskThreadUse4 = "12 线程";
 	
 	private final String menuHelp = "帮助";
 	private final String menuHelpGuide = "使用说明";
@@ -211,7 +211,7 @@ public class ComicCrop extends JFrame {
 				}
 				else if (cmd.equals(menuHelpAbout)) {
 					JOptionPane.showMessageDialog(null,
-							"ComicCrop 版本 " + sVersion + "\n2012-2015 © migr",
+							"ComicCrop 版本 " + sVersion + "\n2012-2021 © LittlePig",
 							"关于",
 							JOptionPane.INFORMATION_MESSAGE);
 				}
@@ -219,13 +219,13 @@ public class ComicCrop extends JFrame {
 					MainParam.getInstance().setMaxThreads(1);
 				}
 				else if (cmd.equals(menuTaskThreadUse2)) {
-					MainParam.getInstance().setMaxThreads(2);
+					MainParam.getInstance().setMaxThreads(4);
 				}
 				else if (cmd.equals(menuTaskThreadUse3)) {
-					MainParam.getInstance().setMaxThreads(3);
+					MainParam.getInstance().setMaxThreads(8);
 				}
 				else if (cmd.equals(menuTaskThreadUse4)) {
-					MainParam.getInstance().setMaxThreads(4);
+					MainParam.getInstance().setMaxThreads(12);
 				}
 			}
 		};
@@ -381,13 +381,13 @@ public class ComicCrop extends JFrame {
 		case 1:
 			taskThread_1.setSelected(true);
 			break;
-		case 2:
+		case 4:
 			taskThread_2.setSelected(true);
 			break;
-		case 3:
+		case 8:
 			taskThread_3.setSelected(true);
 			break;
-		case 4:
+		case 12:
 			taskThread_4.setSelected(true);
 			break;
 		}
@@ -751,6 +751,11 @@ public class ComicCrop extends JFrame {
 			String prefix = JOptionPane.showInputDialog("输入文件名前缀");
 			
 			Vector<String> newList = mList.getList();
+			
+//			int[] indices = mList.getSelectedIndices();
+//			RenamePlus rename = new RenamePlus();
+//			rename.SetData(newList, indices);
+//			rename.RenameAll(prefix, mLastPath);
 			
 			for (int i=0, j=0; i < list.size(); i++) {
 				String name = list.get(i);

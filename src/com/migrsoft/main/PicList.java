@@ -24,8 +24,8 @@ public class PicList {
 		public void onRemove();
 	}
 
-	private DefaultListModel mModel;
-	private JList mList;
+	private DefaultListModel<String> mModel;
+	private JList<String> mList;
 	private JScrollPane mPane;
 	private JPopupMenu mPopup;
 	
@@ -38,10 +38,9 @@ public class PicList {
 		
 		// 创建列表
 		
-		mModel = new DefaultListModel();
-		mList = new JList(mModel);
+		mModel = new DefaultListModel<String>();
+		mList = new JList<String>(mModel);
 		mPane = new JScrollPane(mList);
-//		mList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		mList.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
 		
 		mList.addListSelectionListener(new ListSelectionListener() {
@@ -183,13 +182,16 @@ public class PicList {
 		return lst;
 	}
 	
+	public int[] getSelectedIndices() {
+		return mList.getSelectedIndices();
+	}
+	
 	public Vector<String> getListSelected() {
 		Vector<String> lst = new Vector<String>();
-		Object[] values = mList.getSelectedValues();
-		if (values.length > 1) {
-			for (int i = 0; i < values.length; i++) {
-//				System.out.println((String)values[i]);
-				lst.add((String)values[i]);
+		int[] indices = mList.getSelectedIndices();
+		if (indices.length > 1) {
+			for (int i = 0; i < indices.length; i++) {
+				lst.add(mModel.get(indices[i]));
 			}
 			return lst;
 		} else {

@@ -23,7 +23,7 @@ public class MainParam extends PicWorkerParam {
 	
 	public MainParam() {
 		mAutoGrayLevel = true;
-		mMaxThreads = 2;
+		mMaxThreads = 12;
 		mCropWhite = true;
 		
 		mMaxWidth = 600;
