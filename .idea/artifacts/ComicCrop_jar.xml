@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="ComicCrop:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/ComicCrop_jar</output-path>
+    <root id="archive" name="ComicCrop.jar">
+      <element id="module-output" name="ComicCrop" />
+    </root>
+  </artifact>
+</component>
