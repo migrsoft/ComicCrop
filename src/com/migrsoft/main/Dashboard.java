@@ -23,18 +23,19 @@ public class Dashboard extends JPanel {
 	private static final long serialVersionUID = -7555265674033457515L;
 	
 	public interface ActListener {
-		public void onClockwise(boolean ctrlPressed);
-		public void onAntiClockwise(boolean ctrlPressed);
-		public void onSplit();
-		public void onScale();
-		public void onScaleWidth();
-		public void onSave();
-		public void onOptionChanged();
-		public void onModeChanged(boolean isCrop);
-		public void onCropChanged(boolean isWhite);
-		public void onCalcCrop();
-		public void onCrop();
-		public void onGrowArea();
+		void onClockwise(boolean ctrlPressed);
+		void onAntiClockwise(boolean ctrlPressed);
+		void onSplit();
+		void onScale();
+		void onScaleWidth();
+		void onSave();
+		void onOptionChanged();
+		void onModeChanged(boolean isCrop);
+		void onCropChanged(boolean isWhite);
+		void onCalcCrop();
+		void onCrop();
+		void onGrowArea();
+		void onGrowAreaSlightly();
 	}
 	
 	private ActListener mActListener;
@@ -47,7 +48,9 @@ public class Dashboard extends JPanel {
 	private final String labCropBlack = "切黑边";
 	private final String labCalcCropBox = "计算边缘";
 	
-	private final String labGrowArea = "放大边缘";
+	private final String labGrowArea = "放大";
+
+	private final String labGrowAreaSlightly = "轻微";
 	
 	private final String labResetEdge = "重置剪裁区";
 	
@@ -63,14 +66,14 @@ public class Dashboard extends JPanel {
 	private boolean mLeftToRight; // 从左到右
 	private int mSplitNum; // 分割数量
 	
-	private JRadioButton mTaskSplit;
-	private JRadioButton mTaskCrop;
+	final private JRadioButton mTaskSplit;
+	final private JRadioButton mTaskCrop;
 	
-	private JRadioButton mCropWhite;
-	private JRadioButton mCropBlack;
+	final private JRadioButton mCropWhite;
+	final private JRadioButton mCropBlack;
 	
-	private JTextField mCropTop;
-	private JTextField mCropBot;
+	final private JTextField mCropTop;
+	final private JTextField mCropBot;
 
 	public Dashboard(boolean cropMode) {
 		
@@ -118,6 +121,9 @@ public class Dashboard extends JPanel {
 				else if (cmd.equals(labGrowArea)) {
 					mActListener.onGrowArea();
 				}
+				else if (cmd.equals(labGrowAreaSlightly)) {
+					mActListener.onGrowAreaSlightly();
+				}
 				else if (cmd.equals(labResetEdge)) {
 					mCropTop.setText("0");
 					mCropBot.setText("0");
@@ -127,14 +133,16 @@ public class Dashboard extends JPanel {
 				}
 				else if (cmd.equals(labOpAntiClockwise)) {
 					boolean ctrlPressed = false;
-					if ((event.getModifiers() & ActionEvent.CTRL_MASK) != 0)
+					if ((event.getModifiers() & ActionEvent.CTRL_MASK) != 0) {
 						ctrlPressed = true;
+					}
 					mActListener.onAntiClockwise(ctrlPressed);
 				}
 				else if (cmd.equals(labOpClockwise)) {
 					boolean ctrlPressed = false;
-					if ((event.getModifiers() & ActionEvent.CTRL_MASK) != 0)
+					if ((event.getModifiers() & ActionEvent.CTRL_MASK) != 0) {
 						ctrlPressed = true;
+					}
 					mActListener.onClockwise(ctrlPressed);
 				}
 				else if (cmd.equals(labOpCrop) && obj instanceof JButton) {
@@ -198,10 +206,13 @@ public class Dashboard extends JPanel {
 		
 		JButton btnGrowArea = new JButton(labGrowArea);
 		btnGrowArea.addActionListener(buttonHandler);
-		
+		JButton btnGrowAreaSlightly = new JButton(labGrowAreaSlightly);
+		btnGrowAreaSlightly.addActionListener((buttonHandler));
+
 		Box growAreaBox = Box.createHorizontalBox();
 		growAreaBox.add(btnGrowArea);
-		
+		growAreaBox.add(btnGrowAreaSlightly);
+
 		// 设置剪裁边界
 		mCropTop = new JTextField("0");
 		mCropBot = new JTextField("0");
@@ -344,8 +355,7 @@ public class Dashboard extends JPanel {
 	
 	private int getValueFromTextField(JTextField field) {
 		String s = field.getText();
-		int v = Integer.parseInt(s);
-		return v;
+		return Integer.parseInt(s);
 	}
 	
 	public int getCropTop() {

@@ -49,7 +49,7 @@ public class ComicCrop extends JFrame {
 	private static final long serialVersionUID = 778619808848682268L;
 	
 	private static final String sMainTitle = "ComicCrop";
-	private static final String sVersion = "1.4.3";
+	private static final String sVersion = "1.5.0";
 	
 	private PicEditor mEditor;
 	private PicList mList;
@@ -546,7 +546,12 @@ public class ComicCrop extends JFrame {
 
 			@Override
 			public void onGrowArea() {
-				mEditor.growArea();
+				mEditor.growArea(10);
+			}
+
+			@Override
+			public void onGrowAreaSlightly() {
+				mEditor.growArea(2);
 			}
 		});
 		

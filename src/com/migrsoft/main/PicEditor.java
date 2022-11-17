@@ -29,10 +29,10 @@ public class PicEditor extends JPanel {
 	private static final long serialVersionUID = 5499877512153985223L;
 	
 	public interface ActListener {
-		public void loadPrevItem();
-		public void loadNextItem();
-		public void cropChanged(boolean isWhite);
-		public int[] getCropValues();
+		void loadPrevItem();
+		void loadNextItem();
+		void cropChanged(boolean isWhite);
+		int[] getCropValues();
 	}
 	
 	private ActListener mActListener;
@@ -47,7 +47,7 @@ public class PicEditor extends JPanel {
 	private static final int MAX_EDGE_NUM = 8;
 	private static final int CROP_EDGE_USED = 4;
 	
-	private class Rect {
+	private static class Rect {
 		public int l;
 		public int t;
 		public int r;
@@ -78,7 +78,7 @@ public class PicEditor extends JPanel {
 	/** 图片缩放率。显示大小与实际大小 */
 	private double mScale;
 	/** 显示图片的显示坐标及大小 */
-	private Rect mViewRect;
+	final private Rect mViewRect;
 	/** 图片旋转角度 */
 	private float mAngle;
 	
@@ -88,15 +88,17 @@ public class PicEditor extends JPanel {
 	private int mMaxSplit = 2;
 	private boolean mHorizonal = true; // 水平分割
 	private int[] mSplit; // 分割界线
-	private String mSplitSaveDir = "temp" + File.separator;
+	final private String mSplitSaveDir = "temp" + File.separator;
 	private boolean mLeftToRight = false; // 从左到右计算页码
 	private boolean mCropWhite; // 切白边
 	
 	/** 剪裁区，矩形区域 */
-	private Rectangle2D.Float mCrop;
+	final private Rectangle2D.Float mCrop;
 	
-	private ArrayList<Rectangle2D.Float> mEdge; // 边界感应区
+	final private ArrayList<Rectangle2D.Float> mEdge; // 边界感应区
 	private int mSelectedEdge; // 选择的边
+
+	private int mAdjustEdge = 1;
 	
 	private Font mFont;
 	
@@ -325,33 +327,60 @@ public class PicEditor extends JPanel {
 
 		@Override
 		public void keyTyped(KeyEvent event) {
-			
+
 			switch (event.getKeyChar()) {
-			case 'w':
-				if (mActListener != null)
-					mActListener.loadPrevItem();
-				break;
-			case 's':
-				if (mActListener != null)
-					mActListener.loadNextItem();
-				break;
-				
-			case 'a':
-				rotate(false, false);
-				break;
-			case 'd':
-				rotate(true, false);
-				break;
-			case 'q':
-				rotate(false, true);
-				break;
-			case 'e':
-				rotate(true, true);
-				break;
-				
-			case 'c':
-				calcCrop();
-				break;
+				case 'w':
+					if (mActListener != null)
+						mActListener.loadPrevItem();
+					break;
+				case 's':
+					if (mActListener != null)
+						mActListener.loadNextItem();
+					break;
+
+				case 'a':
+					rotate(false, false);
+					break;
+				case 'd':
+					rotate(true, false);
+					break;
+				case 'q':
+					rotate(false, true);
+					break;
+				case 'e':
+					rotate(true, true);
+					break;
+
+				case 'c':
+					calcCrop();
+					break;
+
+				case 'u':
+					mAdjustEdge = (mAdjustEdge > 0) ? -1 : 1;
+					break;
+
+				case 'i':
+					mSelectedEdge = SENSE_TOP_SIDE;
+					changeCropEdge(0, -1 * mAdjustEdge);
+					break;
+
+				case 'k':
+					mSelectedEdge = SENSE_BOTTOM_SIDE;
+					changeCropEdge(0, 1 * mAdjustEdge);
+					break;
+
+				case 'j':
+					mSelectedEdge = SENSE_LEFT_SIDE;
+					changeCropEdge(-1 * mAdjustEdge, 0);
+					break;
+
+				case 'l':
+					mSelectedEdge = SENSE_RIGHT_SIDE;
+					changeCropEdge(1 * mAdjustEdge, 0);
+					break;
+
+				default:
+					break;
 			}
 		}
 	}
@@ -880,11 +909,11 @@ public class PicEditor extends JPanel {
 	/**
 	 * 放大剪裁区域。四边同时放大。
 	 */
-	public void growArea() {
+	public void growArea(int delta) {
 		if (mImage == null || mWorkMode != WORK_MODE_CROP)
 			return;
 		
-		int grow = 10;
+		int grow = delta;
 		int l, t, r, b;
 		l = (int) (mCrop.x - grow);
 		t = (int) (mCrop.y - grow);

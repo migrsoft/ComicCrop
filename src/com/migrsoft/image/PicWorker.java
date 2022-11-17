@@ -239,7 +239,7 @@ public class PicWorker {
 		Rectangle2D.Float box = new Rectangle2D.Float();
 		
 		int i, j;
-		int limit, valid, count;
+		int scan, limit, valid, count;
 		int ci, cc;
 		
 		int w = image.getWidth();
@@ -248,11 +248,10 @@ public class PicWorker {
 		WritableRaster raster = image.getRaster();
 		ColorModel model = image.getColorModel();
 
-		int scan = 20; // 在首次扫描到有效位置后，再进行的试探扫描量
-				
 		// 水平扫描范围限制
+		scan = (int) (w * 0.02); // 在首次扫描到有效位置后，再进行的试探扫描量
 		limit = w / 5;
-		valid = (int) (h * 0.02);
+		valid = (int) ((h > w) ? (h * 0.02) : (h * 0.01));
 		
 		// 扫描左侧白边
 		ci = -1; // 记录上次的切边位置
@@ -317,15 +316,16 @@ public class PicWorker {
 		box.width = i - box.x;
 		
 		// 垂直扫描范围限制
-		limit = h / 6;
-		valid = (int) (w * 0.01);
+		scan = (int) (h * 0.02);
+		limit = h / 5;
+		valid = (int) ((w < h) ? (w * 0.01) : (w * 0.02));
 		
 		// 扫描顶部白边
 		ci = -1;
 		cc = 0;
 		for (i = 0; i < limit; i++) {
 			count = 0;
-			for (j = 0; j < w; j++) {
+			for (j = (int)box.x; j < (int)box.width; j++) {
 				Object data = raster.getDataElements(j, i, null);
 				int argb = model.getRGB(data);
 				Color color = new Color(argb, false);
@@ -354,7 +354,7 @@ public class PicWorker {
 		// 扫描底部白边
 		for (i = h - 1; i > h - limit; i--) {
 			count = 0;
-			for (j = 0; j < w; j++) {
+			for (j = (int)box.x; j < (int)box.width; j++) {
 				Object data = raster.getDataElements(j, i, null);
 				int argb = model.getRGB(data);
 				Color color = new Color(argb, false);
