@@ -25,7 +25,7 @@ public class SplitOptionDlg extends JDialog {
 	private static final long serialVersionUID = -3463647468272419861L;
 	
 	public interface ActListener {
-		public void onOK();
+		void onOK();
 	}
 	
 	private boolean mHoriSplit;

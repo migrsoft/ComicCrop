@@ -94,6 +94,7 @@ public class ComicCrop extends JFrame {
 	private final String menuTask = "任务";
 	private final String menuTaskSplit = "批量页面分割";
 	private final String menuTaskRename = "按序号重命名";
+	private final String menuTaskRenamePlus = "高级重命名";
 	private final String menuTaskCrop1 = "批量页面操作：旋转→剪裁";
 	private final String menuTaskCrop2 = "批量页面操作：旋转→剪裁→缩放";
 	private final String menuTaskCrop3 = "批量页面操作：旋转→剪裁→缩放宽度";
@@ -187,6 +188,9 @@ public class ComicCrop extends JFrame {
 				}
 				else if (cmd.equals(menuTaskRename)) {
 					batchRenameWork();
+				}
+				else if (cmd.equals(menuTaskRenamePlus)) {
+					batchRenamePlusWork();
 				}
 				else if (cmd.equals(menuTaskCrop1)) {
 					batchCropWork();
@@ -344,6 +348,9 @@ public class ComicCrop extends JFrame {
 		
 		JMenuItem task_batchRename = new JMenuItem(menuTaskRename);
 		task_batchRename.addActionListener(menuHandler);
+
+		JMenuItem task_batchRenamePlus = new JMenuItem(menuTaskRenamePlus);
+		task_batchRenamePlus.addActionListener(menuHandler);
 		
 		JMenuItem task_batchCrop2 = new JMenuItem(menuTaskCrop1);
 		task_batchCrop2.addActionListener(menuHandler);
@@ -395,6 +402,7 @@ public class ComicCrop extends JFrame {
 		task.add(task_batchSplit);
 		task.addSeparator();
 		task.add(task_batchRename);
+		task.add(task_batchRenamePlus);
 		task.addSeparator();
 		task.add(task_batchCrop2);
 		task.addSeparator();
@@ -745,6 +753,26 @@ public class ComicCrop extends JFrame {
 			dlg.setVisible(true);
 		}
 	}
+
+	private void renameAndUpdateList(Vector<RenameThem.Item> result) {
+		Vector<String> newList = mList.getList();
+		for (int i=0, j=0; i < result.size(); i++) {
+			RenameThem.Item rti = result.get(i);
+			File f1 = new File(mLastPath + rti.getOriginName());
+			File f2 = new File(mLastPath + rti.getNewName());
+			if (f1.renameTo(f2)) {
+				for (; j < newList.size(); j++) {
+					String item = newList.get(j);
+					if (item.equals(rti.getOriginName())) {
+						newList.set(j, rti.getNewName());
+						j++;
+						break;
+					}
+				}
+			}
+		}
+		mList.update(newList);
+	}
 	
 	private void batchRenameWork() {
 		Vector<String> list = mList.getListSelected();
@@ -754,35 +782,28 @@ public class ComicCrop extends JFrame {
 				return;
 			
 			String prefix = JOptionPane.showInputDialog("输入文件名前缀");
-			
-			Vector<String> newList = mList.getList();
-			
-//			int[] indices = mList.getSelectedIndices();
-//			RenamePlus rename = new RenamePlus();
-//			rename.SetData(newList, indices);
-//			rename.RenameAll(prefix, mLastPath);
-			
-			for (int i=0, j=0; i < list.size(); i++) {
-				String name = list.get(i);
-				String ext_name = name.substring(name.lastIndexOf("."));
-				String new_name = String.format("%s%03d%s", prefix, i+1, ext_name);
-				//System.out.println(name + " -> " + new_name);
-				
-				File f1 = new File(mLastPath + name);
-				File f2 = new File(mLastPath + new_name);
-				if (f1.renameTo(f2)) {
-					for (; j < newList.size(); j++) {
-						String item = newList.get(j);
-						if (item.equals(name)) {
-							newList.set(j, new_name);
-							j++;
-							break;
-						}
-					}
-				}
-			}
-			mList.update(newList);
+
+			RenameThem work = new RenameThem();
+			work.initial(list);
+			work.rename(prefix, 1, 3);
+			renameAndUpdateList(work.getResult());
 			resetEditor();
+		}
+	}
+
+	private void batchRenamePlusWork() {
+		Vector<String> list = mList.getListSelected();
+		if (list.size() > 0) {
+			final RenamePlusDlg dlg = new RenamePlusDlg();
+			dlg.setData(list, mLastPath);
+			dlg.setMyActionListener(new RenamePlusDlg.MyActionListener() {
+				@Override
+				public void onRename() {
+					renameAndUpdateList(dlg.getResults());
+					resetEditor();
+				}
+			});
+			dlg.setVisible(true);
 		}
 	}
 	
