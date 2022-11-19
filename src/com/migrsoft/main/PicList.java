@@ -20,7 +20,7 @@ public class PicList {
 	
 	public interface ActListener {
 		public void onSelect(String name);
-		public void onDelete(String name);
+		public void onDelete(Vector<String> names);
 		public void onRemove();
 	}
 
@@ -68,14 +68,10 @@ public class PicList {
 			public void actionPerformed(ActionEvent e) {
 				String cmd = e.getActionCommand();
 				if (cmd.equals(menuPopDelete)) {
-					Object o = mList.getSelectedValue();
-					mModel.removeElement(o);
-					mActListener.onDelete((String)o);
+					onMenuDelete();
 				}
 				else if (cmd.equals(menuPopRemove)) {
-					Object o = mList.getSelectedValue();
-					mModel.removeElement(o);
-					mActListener.onRemove();
+					onMenuRemove();
 				}
 			}
 		};
@@ -193,9 +189,36 @@ public class PicList {
 			for (int i = 0; i < indices.length; i++) {
 				lst.add(mModel.get(indices[i]));
 			}
-			return lst;
-		} else {
-			return getList();
 		}
+		return lst;
+	}
+
+	private void onMenuDelete() {
+		Vector<String> selected = getListSelected();
+		if (selected.size() == 0) {
+			Object o = mList.getSelectedValue();
+			mModel.removeElement(o);
+			selected.add((String)o);
+		} else {
+			for (String s : selected) {
+				mModel.removeElement(s);
+			}
+		}
+		mActListener.onDelete(selected);
+	}
+
+	private void onMenuRemove() {
+		Vector<String> selected = getListSelected();
+		if (selected.size() == 0) {
+			// 单选
+			Object o = mList.getSelectedValue();
+			mModel.removeElement(o);
+		} else {
+			// 多选
+			for (String s : selected) {
+				mModel.removeElement(s);
+			}
+		}
+		mActListener.onRemove();
 	}
 }

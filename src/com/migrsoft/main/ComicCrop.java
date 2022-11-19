@@ -471,10 +471,12 @@ public class ComicCrop extends JFrame {
 			}
 
 			@Override
-			public void onDelete(String name) {
+			public void onDelete(Vector<String> names) {
 				updateTitle();
-				File f = new File(mLastPath + name);
-				f.delete();
+				for (String n : names) {
+					File f = new File(mLastPath + n);
+					f.delete();
+				}
 				resetEditor();
 			}
 
@@ -776,6 +778,9 @@ public class ComicCrop extends JFrame {
 	
 	private void batchRenameWork() {
 		Vector<String> list = mList.getListSelected();
+		if (list.size() == 0) {
+			list = mList.getList();
+		}
 		if (list.size() > 0) {
 			if (JOptionPane.showConfirmDialog(
 					this, "是否重命名列表中的图片？", "确认", JOptionPane.YES_NO_OPTION) == JOptionPane.NO_OPTION)
@@ -793,6 +798,9 @@ public class ComicCrop extends JFrame {
 
 	private void batchRenamePlusWork() {
 		Vector<String> list = mList.getListSelected();
+		if (list.size() == 0) {
+			list = mList.getList();
+		}
 		if (list.size() > 0) {
 			final RenamePlusDlg dlg = new RenamePlusDlg();
 			dlg.setData(list, mLastPath);
