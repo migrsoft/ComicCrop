@@ -85,6 +85,7 @@ public class BatchTask {
 			BufferedImage image = PicWorker.load(path + name, MainParam.getInstance());
 			boolean save = false;
 			boolean cropWhite = true;
+			boolean cropAll = true;
 			if (image != null) {
 				
 				td = mTaskInfo.get(name);
@@ -101,10 +102,11 @@ public class BatchTask {
 						save = true;
 					}
 					cropWhite = td.cropWhite;
+					cropAll = td.cropAll;
 				}
 				
 				if (td == null || (td != null && td.w == 0)) {
-					Rectangle2D.Float box = PicWorker.calcCropBox(image, cropWhite);
+					Rectangle2D.Float box = PicWorker.calcCropBox(image, cropWhite, cropAll);
 					x = (int) box.x;
 					y = (int) box.y;
 					w = (int) box.width;

@@ -550,8 +550,8 @@ public class ComicCrop extends JFrame {
 			}
 
 			@Override
-			public void onCropChanged(boolean isWhite) {
-				mEditor.cropChanged(isWhite);
+			public void onCropChanged(boolean isWhite, boolean isAll) {
+				mEditor.cropChanged(isWhite, isAll);
 			}
 
 			@Override

@@ -21,4 +21,6 @@ public class TaskData implements Serializable {
 	public boolean gray;
 	
 	public boolean cropWhite;
+
+	public boolean cropAll;
 }

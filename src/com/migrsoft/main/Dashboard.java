@@ -31,7 +31,7 @@ public class Dashboard extends JPanel {
 		void onSave();
 		void onOptionChanged();
 		void onModeChanged(boolean isCrop);
-		void onCropChanged(boolean isWhite);
+		void onCropChanged(boolean isWhite, boolean isAll);
 		void onCalcCrop();
 		void onCrop();
 		void onGrowArea();
@@ -46,6 +46,8 @@ public class Dashboard extends JPanel {
 	
 	private final String labCropWhite = "切白边";
 	private final String labCropBlack = "切黑边";
+	private final String labCropAll = "切四边";
+	private final String labCropVery = "切上下";
 	private final String labCalcCropBox = "计算边缘";
 	
 	private final String labGrowArea = "放大";
@@ -71,6 +73,9 @@ public class Dashboard extends JPanel {
 	
 	final private JRadioButton mCropWhite;
 	final private JRadioButton mCropBlack;
+
+	final private JRadioButton mCropAll;
+	final private JRadioButton mCropVert;
 	
 	final private JTextField mCropTop;
 	final private JTextField mCropBot;
@@ -110,10 +115,16 @@ public class Dashboard extends JPanel {
 					dlg.setVisible(true);
 				}
 				else if (cmd.equals(labCropWhite) && obj instanceof JRadioButton) {
-					mActListener.onCropChanged(true);
+					mActListener.onCropChanged(true, MainParam.getInstance().isCropAll());
 				}
 				else if (cmd.equals(labCropBlack) && obj instanceof JRadioButton) {
-					mActListener.onCropChanged(false);
+					mActListener.onCropChanged(false, MainParam.getInstance().isCropAll());
+				}
+				else if (cmd.equals(labCropAll) && obj instanceof JRadioButton) {
+					mActListener.onCropChanged(MainParam.getInstance().isCropWhite(),true);
+				}
+				else if (cmd.equals(labCropVery) && obj instanceof JRadioButton) {
+					mActListener.onCropChanged(MainParam.getInstance().isCropWhite(), false);
 				}
 				else if (cmd.equals(labCalcCropBox)) {
 					mActListener.onCalcCrop();
@@ -186,18 +197,27 @@ public class Dashboard extends JPanel {
 		// 切边类型
 		mCropWhite = new JRadioButton(labCropWhite, MainParam.getInstance().isCropWhite());
 		mCropWhite.addActionListener(buttonHandler);
-		
 		mCropBlack = new JRadioButton(labCropBlack, !MainParam.getInstance().isCropWhite());
 		mCropBlack.addActionListener(buttonHandler);
-		
 		ButtonGroup cropGroup = new ButtonGroup();
 		cropGroup.add(mCropWhite);
 		cropGroup.add(mCropBlack);
-		
 		Box cropTypeBox = Box.createHorizontalBox();
 		cropTypeBox.add(mCropWhite);
 		cropTypeBox.add(mCropBlack);
-		
+
+		// 切边范围
+		mCropAll = new JRadioButton(labCropAll, MainParam.getInstance().isCropAll());
+		mCropAll.addActionListener(buttonHandler);
+		mCropVert = new JRadioButton(labCropVery, !MainParam.getInstance().isCropAll());
+		mCropVert.addActionListener(buttonHandler);
+		ButtonGroup cropRangeGroup = new ButtonGroup();
+		cropRangeGroup.add(mCropAll);
+		cropRangeGroup.add(mCropVert);
+		Box cropRangeBox = Box.createHorizontalBox();
+		cropRangeBox.add(mCropAll);
+		cropRangeBox.add(mCropVert);
+
 		JButton btnAutoCalcCrop = new JButton(labCalcCropBox);
 		btnAutoCalcCrop.addActionListener(buttonHandler);
 		
@@ -229,6 +249,7 @@ public class Dashboard extends JPanel {
 		taskPanelBox.add(taskChooseBox);
 		taskPanelBox.add(taskOptionBox);
 		taskPanelBox.add(cropTypeBox);
+		taskPanelBox.add(cropRangeBox);
 		taskPanelBox.add(autoCalcBox);
 		taskPanelBox.add(growAreaBox);
 		taskPanelBox.add(mCropTop);

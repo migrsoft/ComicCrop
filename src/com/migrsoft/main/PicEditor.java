@@ -91,6 +91,7 @@ public class PicEditor extends JPanel {
 	final private String mSplitSaveDir = "temp" + File.separator;
 	private boolean mLeftToRight = false; // 从左到右计算页码
 	private boolean mCropWhite; // 切白边
+	private boolean mCropRangeAll; // 切四边
 	
 	/** 剪裁区，矩形区域 */
 	final private Rectangle2D.Float mCrop;
@@ -652,6 +653,7 @@ public class PicEditor extends JPanel {
 				
 				// 切边类型
 				mCropWhite = td.cropWhite;
+				mCropRangeAll = td.cropAll;
 			}
 			
 			mActListener.cropChanged(mCropWhite);
@@ -719,7 +721,7 @@ public class PicEditor extends JPanel {
 					mCrop.height -= vs[0] + vs[1];
 				}
 				else {
-					Rectangle2D.Float box = PicWorker.calcCropBox(mImage, mCropWhite);
+					Rectangle2D.Float box = PicWorker.calcCropBox(mImage, mCropWhite, mCropRangeAll);
 					mCrop.x += box.x * mScale;
 					mCrop.width = (float) (box.width * mScale);
 					mCrop.y += box.y * mScale;
@@ -738,7 +740,7 @@ public class PicEditor extends JPanel {
 			return;
 		
 		mCrop.setRect(mViewRect.l, mViewRect.t, mViewRect.r - mViewRect.l, mViewRect.b - mViewRect.t);
-		Rectangle2D.Float box = PicWorker.calcCropBox(mImage, mCropWhite);
+		Rectangle2D.Float box = PicWorker.calcCropBox(mImage, mCropWhite, mCropRangeAll);
 		mCrop.x += box.x * mScale;
 		mCrop.width = (float) (box.width * mScale);
 		mCrop.y += box.y * mScale;
@@ -766,6 +768,7 @@ public class PicEditor extends JPanel {
 		mImage = null;
 		mIsGray = false;
 		mCropWhite = MainParam.getInstance().isCropWhite();
+		mCropRangeAll = MainParam.getInstance().isCropAll();
 		
 		mAngle = 0f;
 		mScale = 1f;
@@ -808,6 +811,7 @@ public class PicEditor extends JPanel {
 		
 		// 切边类型
 		td.cropWhite = mCropWhite;
+		td.cropAll = mCropRangeAll;
 		
 		ComicCrop.getInstance().saveTaskData(mImagePath, td);
 	}
@@ -898,14 +902,23 @@ public class PicEditor extends JPanel {
 		repaint();
 	}
 	
-	public void cropChanged(boolean isWhite) {
+	public void cropChanged(boolean isWhite, boolean isAll) {
+		boolean change = false;
 		if (mCropWhite != isWhite) {
 			MainParam.getInstance().setCropWhite(isWhite);
 			mCropWhite = isWhite;
+			change = true;
+		}
+		if (mCropRangeAll != isAll) {
+			MainParam.getInstance().setCropAll(isAll);
+			mCropRangeAll = isAll;
+			change = true;
+		}
+		if (change) {
 			calcCrop();
 		}
 	}
-	
+
 	/**
 	 * 放大剪裁区域。四边同时放大。
 	 */

@@ -234,7 +234,8 @@ public class PicWorker {
 	 * @param image
 	 * @return
 	 */
-	static public Rectangle2D.Float calcCropBox(BufferedImage image, boolean cropWhite) {
+	static public Rectangle2D.Float calcCropBox(
+			BufferedImage image, boolean cropWhite, boolean vertOnly) {
 		
 		Rectangle2D.Float box = new Rectangle2D.Float();
 		
@@ -248,72 +249,79 @@ public class PicWorker {
 		WritableRaster raster = image.getRaster();
 		ColorModel model = image.getColorModel();
 
-		// 水平扫描范围限制
-		scan = (int) (w * 0.02); // 在首次扫描到有效位置后，再进行的试探扫描量
-		limit = w / 5;
-		valid = (int) ((h > w) ? (h * 0.02) : (h * 0.01));
-		
-		// 扫描左侧白边
-		ci = -1; // 记录上次的切边位置
-	    cc = 0; // 有效扫描次数
-		for (i = 0; i < limit; i++) {
-			count = 0; // 有效像素
-			for (j = 0; j < h; j++) {
-				Object data = raster.getDataElements(i, j, null);
-				int argb = model.getRGB(data);
-				Color color = new Color(argb, false);
-				if (isValidColor(color, cropWhite))
-					count++;
+		if (vertOnly) {
+			box.x = 0;
+			box.width = w;
+		} else {
+
+			// 水平扫描范围限制
+			scan = (int) (w * 0.02); // 在首次扫描到有效位置后，再进行的试探扫描量
+			limit = w / 5;
+			valid = (int) ((h > w) ? (h * 0.02) : (h * 0.01));
+
+			// 扫描左侧白边
+			ci = -1; // 记录上次的切边位置
+			cc = 0; // 有效扫描次数
+			for (i = 0; i < limit; i++) {
+				count = 0; // 有效像素
+				for (j = 0; j < h; j++) {
+					Object data = raster.getDataElements(i, j, null);
+					int argb = model.getRGB(data);
+					Color color = new Color(argb, false);
+					if (isValidColor(color, cropWhite))
+						count++;
+					if (count > valid)
+						break;
+				}
+
+				// 检测列扫描结果
 				if (count > valid)
+					cc++;
+				if (count > valid && ci == -1)
+					ci = i;
+				if (count < valid) {
+					cc = 0;
+					ci = -1;
+				}
+				if (cc > scan) {
+					i = ci;
 					break;
+				}
 			}
-			
-			// 检测列扫描结果
-			if (count > valid)
-				cc++;
-			if (count > valid && ci == -1)
-				ci = i;
-			if (count < valid) {
-				cc = 0;
-				ci = -1;
-			}
-			if (cc > scan) {
-				i = ci;
-				break;
-			}
-		}
-		box.x = i;
-		
-		// 扫描右侧白边
-		ci = -1;
-		cc = 0;
-		for (i = w - 1; i > w - limit; i--) {
-			count = 0;
-			for (j = 0; j < h; j++) {
-				Object data = raster.getDataElements(i, j, null);
-				int argb = model.getRGB(data);
-				Color color = new Color(argb, false);
-				if (isValidColor(color, cropWhite))
-					count++;
+			box.x = i;
+
+			// 扫描右侧白边
+			ci = -1;
+			cc = 0;
+			for (i = w - 1; i > w - limit; i--) {
+				count = 0;
+				for (j = 0; j < h; j++) {
+					Object data = raster.getDataElements(i, j, null);
+					int argb = model.getRGB(data);
+					Color color = new Color(argb, false);
+					if (isValidColor(color, cropWhite))
+						count++;
+					if (count > valid)
+						break;
+				}
+
+				// 检测列扫描结果
 				if (count > valid)
+					cc++;
+				if (count > valid && ci == -1)
+					ci = i;
+				if (count < valid) {
+					cc = 0;
+					ci = -1;
+				}
+				if (cc > scan) {
+					i = ci;
 					break;
+				}
 			}
-			
-			// 检测列扫描结果
-			if (count > valid)
-				cc++;
-			if (count > valid && ci == -1)
-				ci = i;
-			if (count < valid) {
-				cc = 0;
-				ci = -1;
-			}
-			if (cc > scan) {
-				i = ci;
-				break;
-			}
+			box.width = i - box.x;
+
 		}
-		box.width = i - box.x;
 		
 		// 垂直扫描范围限制
 		scan = (int) (h * 0.02);

@@ -17,6 +17,8 @@ public class MainParam extends PicWorkerParam {
 	private int mMaxThreads;
 	
 	private boolean mCropWhite;
+
+	private boolean mIsCropAll;
 	
 	private int mMaxWidth;
 	private int mMaxHeight;
@@ -25,6 +27,7 @@ public class MainParam extends PicWorkerParam {
 		mAutoGrayLevel = true;
 		mMaxThreads = 12;
 		mCropWhite = true;
+		mIsCropAll = true;
 		
 		mMaxWidth = 600;
 		mMaxHeight = 1000;
@@ -46,14 +49,14 @@ public class MainParam extends PicWorkerParam {
 		this.mMaxThreads = maxThreads;
 	}
 	
-	public boolean isCropWhite() {
-		return mCropWhite;
-	}
-	
-	public void setCropWhite(boolean b) {
-		mCropWhite = b;
-	}
-	
+	public boolean isCropWhite() { return mCropWhite; }
+
+	public void setCropWhite(boolean b) { mCropWhite = b; }
+
+	public boolean isCropAll() { return mIsCropAll; }
+
+	public void setCropAll(boolean b) { mIsCropAll = b; }
+
 	public int getMaxWidth() {
 		return mMaxWidth;
 	}
