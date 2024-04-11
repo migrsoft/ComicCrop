@@ -321,7 +321,7 @@ public class ComicCrop extends JFrame {
 		sizeGroup.add(pic_size600);
 		sizeGroup.add(pic_size800);
 		
-		pic_size600.setSelected(true);
+		pic_size800.setSelected(true);
 		
 		pic.add(pic_gray);
 		pic.addSeparator();
