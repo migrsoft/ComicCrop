@@ -10,8 +10,8 @@ public class PicWorkerParam {
 	private boolean mForceGray;
 	
 	public PicWorkerParam() {
-		mOutputType = OUTPUT_FORMAT_PNG;
-		mJpegQuality = 0.5f;
+		mOutputType = OUTPUT_FORMAT_JPG;
+		mJpegQuality = 0.9f;
 		mForceGray = false;
 	}
 
