@@ -15,7 +15,10 @@ public class RenameThem {
             int extPos = name.lastIndexOf(".");
             mName = name.substring(0, extPos);
             mExtName = name.substring(extPos + 1);
-            mNewExtName = mExtName;
+            mNewExtName = mExtName.toLowerCase();
+            if (mNewExtName.equals("jpeg")) {
+                mNewExtName = "jpg";
+            }
         }
 
         public String getOriginName() {
