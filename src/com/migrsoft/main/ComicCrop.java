@@ -633,7 +633,8 @@ public class ComicCrop extends JFrame {
 			for (File f : fl) {
 				taskList.add(f.getName());
 			}
-			
+
+			Collections.sort(taskList, new SortByName());
 			mList.update(taskList);
 
 			resetEditor();
@@ -659,7 +660,7 @@ public class ComicCrop extends JFrame {
 			}
 		}
 		
-		Collections.sort(taskList);
+		Collections.sort(taskList, new SortByName());
 		mList.update(taskList);
 		
 		resetEditor();
