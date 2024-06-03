@@ -49,7 +49,7 @@ public class ComicCrop extends JFrame {
 	private static final long serialVersionUID = 778619808848682268L;
 	
 	private static final String sMainTitle = "ComicCrop";
-	private static final String sVersion = "1.5.0";
+	private static final String sVersion = "1.6.0";
 	
 	private PicEditor mEditor;
 	private PicList mList;
@@ -85,6 +85,7 @@ public class ComicCrop extends JFrame {
 	private final String menuPicAutoGrayLevel = "自动计算灰阶";
 	private final String menuPicOutputPng = "输出为 PNG 格式";
 	private final String menuPicOutputJpeg = "输出为 JPEG 格式";
+	private final String menuPicOutputWebp = "输出为 WEBP 格式";
 	private final String menuPicCropWhite = "切白边";
 	private final String menuPicCropBlack = "切黑边";
 	private final String menuPicSize480 = "480 x 800";
@@ -159,6 +160,11 @@ public class ComicCrop extends JFrame {
 					if (item.isSelected())
 						MainParam.getInstance().setOutputFormat(MainParam.OUTPUT_FORMAT_JPG);
 				}
+				else if (cmd.equals(menuPicOutputWebp)) {
+					JRadioButtonMenuItem item = (JRadioButtonMenuItem)event.getSource();
+					if (item.isSelected())
+						MainParam.getInstance().setOutputFormat(MainParam.OUTPUT_FORMAT_WEBP);
+				}
 				else if (cmd.equals(menuPicCropWhite)) {
 					JRadioButtonMenuItem item = (JRadioButtonMenuItem)event.getSource();
 					if (item.isSelected())
@@ -215,8 +221,8 @@ public class ComicCrop extends JFrame {
 				}
 				else if (cmd.equals(menuHelpAbout)) {
 					JOptionPane.showMessageDialog(null,
-							"ComicCrop 版本 " + sVersion + "\n2012-2021 © LittlePig",
-							"关于",
+							"ComicCrop Version " + sVersion + "\n2012-2024 © Woosoft",
+							"About",
 							JOptionPane.INFORMATION_MESSAGE);
 				}
 				else if (cmd.equals(menuTaskThreadUse1)) {
@@ -282,15 +288,26 @@ public class ComicCrop extends JFrame {
 		
 		JRadioButtonMenuItem pic_formatJpg = new JRadioButtonMenuItem(menuPicOutputJpeg);
 		pic_formatJpg.addActionListener(menuHandler);
-		
+
+		JRadioButtonMenuItem pic_formatWebp = new JRadioButtonMenuItem(menuPicOutputWebp);
+		pic_formatWebp.addActionListener(menuHandler);
+
 		ButtonGroup formatGroup = new ButtonGroup();
 		formatGroup.add(pic_formatPng);
 		formatGroup.add(pic_formatJpg);
-		
-		if (MainParam.getInstance().getOutputFormat() == MainParam.OUTPUT_FORMAT_PNG)
-			pic_formatPng.setSelected(true);
-		else
-			pic_formatJpg.setSelected(true);
+		formatGroup.add(pic_formatWebp);
+
+		switch (MainParam.getInstance().getOutputFormat()) {
+			case MainParam.OUTPUT_FORMAT_PNG:
+				pic_formatPng.setSelected(true);
+				break;
+			case MainParam.OUTPUT_FORMAT_JPG:
+				pic_formatJpg.setSelected(true);
+				break;
+			case MainParam.OUTPUT_FORMAT_WEBP:
+				pic_formatWebp.setSelected(true);
+				break;
+		}
 
 		JRadioButtonMenuItem pic_cropWhite = new JRadioButtonMenuItem(menuPicCropWhite);
 		pic_cropWhite.addActionListener(menuHandler);
@@ -330,6 +347,7 @@ public class ComicCrop extends JFrame {
 		pic.addSeparator();
 		pic.add(pic_formatPng);
 		pic.add(pic_formatJpg);
+		pic.add(pic_formatWebp);
 		pic.addSeparator();
 		pic.add(pic_cropWhite);
 		pic.add(pic_cropBlack);
@@ -586,7 +604,11 @@ public class ComicCrop extends JFrame {
 			@Override
 			public boolean accept(File f) {
 				String name = f.getName().toLowerCase();
-				return name.endsWith(".jpg") || name.endsWith(".jpeg") || name.endsWith(".png") || f.isDirectory();
+				return name.endsWith(".jpg")
+						|| name.endsWith(".jpeg")
+						|| name.endsWith(".png")
+						|| name.endsWith(".webp")
+						|| f.isDirectory();
 			}
 
 			@Override

@@ -4,6 +4,7 @@ public class PicWorkerParam {
 	
 	static public final int OUTPUT_FORMAT_PNG = 1;
 	static public final int OUTPUT_FORMAT_JPG = 2;
+	static public final int OUTPUT_FORMAT_WEBP = 3;
 	
 	private int mOutputType;
 	private float mJpegQuality;
@@ -28,6 +29,8 @@ public class PicWorkerParam {
 			return ".png";
 		else if (mOutputType == OUTPUT_FORMAT_JPG)
 			return ".jpg";
+		else if (mOutputType == OUTPUT_FORMAT_WEBP)
+			return ".webp";
 		else
 			return null;
 	}

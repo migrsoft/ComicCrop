@@ -1,5 +1,8 @@
 package com.migrsoft.image;
 
+import com.luciad.imageio.webp.WebPReadParam;
+import com.luciad.imageio.webp.WebPWriteParam;
+
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.geom.AffineTransform;
@@ -11,13 +14,14 @@ import java.awt.image.ConvolveOp;
 import java.awt.image.Kernel;
 import java.awt.image.WritableRaster;
 import java.io.File;
+import java.io.IOException;
 import java.util.Iterator;
+import java.util.List;
 
-import javax.imageio.IIOImage;
-import javax.imageio.ImageIO;
-import javax.imageio.ImageTypeSpecifier;
-import javax.imageio.ImageWriteParam;
-import javax.imageio.ImageWriter;
+import javax.imageio.*;
+import javax.imageio.metadata.IIOMetadata;
+import javax.imageio.stream.FileImageInputStream;
+import javax.imageio.stream.FileImageOutputStream;
 import javax.imageio.stream.ImageOutputStream;
 
 public class PicWorker {
@@ -27,14 +31,23 @@ public class PicWorker {
 		
 		BufferedImage image = null;
 		try {
-			image = ImageIO.read(new File(path));
-			if (   image.getType() == BufferedImage.TYPE_BYTE_BINARY
-				|| image.getType() == BufferedImage.TYPE_BYTE_INDEXED
-				|| param.isForceGray()) {
-				image = convertToGray(image);
+			if (path.endsWith(".webp")) {
+				ImageReader reader = ImageIO.getImageReadersByMIMEType("image/webp").next();
+				WebPReadParam readParam = new WebPReadParam();
+				readParam.setBypassFiltering(true);
+				reader.setInput(new FileImageInputStream(new File(path)));
+				image = reader.read(0, readParam);
+			} else {
+				image = ImageIO.read(new File(path));
+				if (image.getType() == BufferedImage.TYPE_BYTE_BINARY
+						|| image.getType() == BufferedImage.TYPE_BYTE_INDEXED
+						|| param.isForceGray()) {
+					image = convertToGray(image);
+				}
 			}
 		}
 		catch (Exception e) {
+			System.out.println(e.getMessage());
 		}
 		return image;
 	}
@@ -54,13 +67,17 @@ public class PicWorker {
 			newPath = path.substring(0, ext) + extName;
 		
 		switch (param.getOutputFormat()) {
-		case PicWorkerParam.OUTPUT_FORMAT_PNG:
-			ret = saveAsPng(image, newPath);
-			break;
-			
-		case PicWorkerParam.OUTPUT_FORMAT_JPG:
-			ret = saveAsJpeg(image, newPath, param);
-			break;
+			case PicWorkerParam.OUTPUT_FORMAT_PNG:
+				ret = saveAsPng(image, newPath);
+				break;
+
+			case PicWorkerParam.OUTPUT_FORMAT_JPG:
+				ret = saveAsJpeg(image, newPath, param);
+				break;
+
+			case PicWorkerParam.OUTPUT_FORMAT_WEBP:
+				ret = saveAsWebp(image, newPath);
+				break;
 		}
 		
 		return ret;
@@ -73,6 +90,7 @@ public class PicWorker {
 			return true;
 		}
 		catch (Exception e) {
+			System.out.println(e.getMessage());
 		}
 		return false;
 	}
@@ -105,8 +123,23 @@ public class PicWorker {
 			return true;
 		}
 		catch (Exception e) {
+			System.out.println(e.getMessage());
 		}
 		
+		return false;
+	}
+
+	static private boolean saveAsWebp(BufferedImage image, String path) {
+		ImageWriter writer = ImageIO.getImageWritersByMIMEType("image/webp").next();
+		WebPWriteParam writeParam = new WebPWriteParam(writer.getLocale());
+		writeParam.setCompressionMode(1);
+		try {
+			writer.setOutput(new FileImageOutputStream(new File(path)));
+			writer.write(null, new IIOImage(image, null, null), writeParam);
+			return true;
+		} catch (Exception e) {
+			System.out.println(e.getMessage());
+		}
 		return false;
 	}
 	
