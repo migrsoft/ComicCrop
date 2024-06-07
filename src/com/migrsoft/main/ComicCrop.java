@@ -618,8 +618,12 @@ public class ComicCrop extends JFrame {
 			
 		});
 		dlg.setMultiSelectionEnabled(true);
-		if (mLastPath != null)
+		if (mLastPath != null) {
 			dlg.setCurrentDirectory(new File(mLastPath));
+		} else {
+			String currentPath = System.getProperty("user.dir");
+			dlg.setCurrentDirectory(new File(currentPath));
+		}
 		int r = dlg.showOpenDialog(this);
 		if (r == JFileChooser.APPROVE_OPTION) {
 			File[] fl = dlg.getSelectedFiles();
