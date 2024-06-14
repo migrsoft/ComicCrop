@@ -3,8 +3,7 @@ package com.migrsoft.image;
 import com.luciad.imageio.webp.WebPReadParam;
 import com.luciad.imageio.webp.WebPWriteParam;
 
-import java.awt.Color;
-import java.awt.Graphics2D;
+import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.AffineTransformOp;
@@ -15,13 +14,18 @@ import java.awt.image.Kernel;
 import java.awt.image.WritableRaster;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.Buffer;
 import java.util.Iterator;
 import java.util.List;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 import javax.imageio.*;
 import javax.imageio.metadata.IIOMetadata;
 import javax.imageio.stream.FileImageInputStream;
 import javax.imageio.stream.FileImageOutputStream;
+import javax.imageio.stream.ImageInputStream;
 import javax.imageio.stream.ImageOutputStream;
 
 public class PicWorker {
@@ -47,6 +51,29 @@ public class PicWorker {
 			}
 		}
 		catch (Exception e) {
+			System.out.println(e.getMessage());
+		}
+		return image;
+	}
+
+	static public BufferedImage load(ZipFile zip, String fileName, PicWorkerParam param) {
+		assert zip != null;
+		assert param != null;
+		BufferedImage image = null;
+		try {
+			ZipEntry entry = zip.getEntry(fileName);
+			InputStream is = zip.getInputStream(entry);
+			ImageInputStream iis = ImageIO.createImageInputStream(is);
+			if (fileName.endsWith(".webp")) {
+				ImageReader reader = ImageIO.getImageReadersByMIMEType("image/webp").next();
+				WebPReadParam readParam = new WebPReadParam();
+				readParam.setBypassFiltering(true);
+				reader.setInput(iis);
+				image = reader.read(0, readParam);
+			} else {
+				image = ImageIO.read(iis);
+			}
+		} catch (Exception e) {
 			System.out.println(e.getMessage());
 		}
 		return image;

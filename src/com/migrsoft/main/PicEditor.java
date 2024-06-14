@@ -16,6 +16,7 @@ import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.zip.ZipFile;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
@@ -831,6 +832,17 @@ public class PicEditor extends JPanel {
 		mImage = PicWorker.load(path, MainParam.getInstance());
 		if (mImage != null) {
 			mImagePath = path;
+			calcPosition(true);
+			repaint();
+		}
+	}
+
+	public void load(ZipFile zip, String fileName) {
+		saveTaskData();
+		reset();
+		mImage = PicWorker.load(zip, fileName, MainParam.getInstance());
+		if (mImage != null) {
+			mImagePath = fileName;
 			calcPosition(true);
 			repaint();
 		}

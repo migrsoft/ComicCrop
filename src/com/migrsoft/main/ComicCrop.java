@@ -19,6 +19,9 @@ import java.net.URL;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Vector;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
+import java.util.zip.ZipInputStream;
 
 import javax.swing.ButtonGroup;
 import javax.swing.JCheckBoxMenuItem;
@@ -52,10 +55,13 @@ public class ComicCrop extends JFrame {
 	private static final String sVersion = "1.6.0";
 	
 	private PicEditor mEditor;
+	private PicViewer mViewer;
 	private PicList mList;
 	private Dashboard mBoard;
 	
 	private String mLastPath;
+
+	private ZipFile mZipFile = null;
 
 	public ComicCrop() {
 		super(sMainTitle);
@@ -74,6 +80,7 @@ public class ComicCrop extends JFrame {
 	
 	private final String menuFile = "文件";
 	private final String menuFileOpen = "打开图片";
+	private final String menuFileOpenComic = "打开漫画";
 	private final String menuFileResize = "窗口大小锁定";
 	private final String menuFileReadTask = "读取任务";
 	private final String menuFileSaveTask = "保存任务";
@@ -125,6 +132,9 @@ public class ComicCrop extends JFrame {
 				
 				if (cmd.equals(menuFileOpen)) {
 					openFile();
+				}
+				else if (cmd.equals(menuFileOpenComic)) {
+					openComic();
 				}
 				else if (cmd.equals(menuFileResize)) {
 					resizeWindow();
@@ -247,7 +257,10 @@ public class ComicCrop extends JFrame {
 		
 		JMenuItem file_open = new JMenuItem(menuFileOpen);
 		file_open.addActionListener(menuHandler);
-		
+
+		JMenuItem file_open_comic = new JMenuItem(menuFileOpenComic);
+		file_open_comic.addActionListener(menuHandler);
+
 		JMenuItem file_resize = new JMenuItem(menuFileResize);
 		file_resize.addActionListener(menuHandler);
 		
@@ -261,6 +274,7 @@ public class ComicCrop extends JFrame {
 		file_test.addActionListener(menuHandler);
 		
 		file.add(file_open);
+		file.add(file_open_comic);
 		file.addSeparator();
 		file.add(file_resize);
 		file.addSeparator();
@@ -478,6 +492,19 @@ public class ComicCrop extends JFrame {
 				return vs;
 			}
 		});
+
+		mViewer = new PicViewer();
+		mViewer.setActListener(new PicViewer.ActListener() {
+			@Override
+			public void loadPrevItem() {
+				mList.loadPrevItem();
+			}
+
+			@Override
+			public void loadNextItem() {
+				mList.loadNextItem();
+			}
+		});
 		
 		mList = new PicList();
 		mList.setActListener(new PicList.ActListener() {
@@ -485,7 +512,11 @@ public class ComicCrop extends JFrame {
 			@Override
 			public void onSelect(String name) {
 				updateTitle();
-				mEditor.load(mLastPath + name);
+				if (mZipFile != null) {
+					mViewer.load(mZipFile, name);
+				} else {
+					mEditor.load(mLastPath + name);
+				}
 			}
 
 			@Override
@@ -596,7 +627,33 @@ public class ComicCrop extends JFrame {
 	}
 	
 	private HashMap<String, TaskData> mTaskInfo = null;
-	
+
+	private void closeZipFile() {
+		try {
+			if (mZipFile != null) {
+				mZipFile.close();
+				mZipFile = null;
+			}
+		} catch (Exception e) {
+			System.out.println(e.getMessage());
+		}
+	}
+
+	private void switchUI(boolean viewMode) {
+		Container container = getContentPane();
+		if (viewMode) {
+			container.remove(mEditor);
+			container.remove(mBoard);
+			container.add(mViewer, BorderLayout.CENTER);
+		} else { // to edit mode
+			container.remove(mViewer);
+			container.add(mEditor, BorderLayout.CENTER);
+			container.add(mBoard, BorderLayout.EAST);
+		}
+		container.revalidate();
+		container.repaint();
+	}
+
 	private void openFile() {
 		JFileChooser dlg = new JFileChooser();
 		dlg.setFileFilter(new FileFilter() {
@@ -626,6 +683,9 @@ public class ComicCrop extends JFrame {
 		}
 		int r = dlg.showOpenDialog(this);
 		if (r == JFileChooser.APPROVE_OPTION) {
+			closeZipFile();
+			switchUI(false);
+
 			File[] fl = dlg.getSelectedFiles();
 			int pathLen = fl[0].getPath().length();
 			int nameLen = fl[0].getName().length();
@@ -644,7 +704,62 @@ public class ComicCrop extends JFrame {
 			resetEditor();
 		}
 	}
-	
+
+	private void openComic() {
+		JFileChooser dlg = new JFileChooser();
+		dlg.setFileFilter(new FileFilter() {
+
+			@Override
+			public boolean accept(File f) {
+				String name = f.getName().toLowerCase();
+				return name.endsWith(".cbz")
+						|| f.isDirectory();
+			}
+
+			@Override
+			public String getDescription() {
+				return "漫画文件";
+			}
+
+		});
+		dlg.setMultiSelectionEnabled(false);
+		if (mLastPath != null) {
+			dlg.setCurrentDirectory(new File(mLastPath));
+		} else {
+			String currentPath = System.getProperty("user.dir");
+			dlg.setCurrentDirectory(new File(currentPath));
+		}
+		int r = dlg.showOpenDialog(this);
+		if (r == JFileChooser.APPROVE_OPTION) {
+			closeZipFile();
+			switchUI(true);
+
+			File fl = dlg.getSelectedFile();
+			int pathLen = fl.getPath().length();
+			int nameLen = fl.getName().length();
+
+			mLastPath = fl.getPath().substring(0, pathLen - nameLen);
+			Vector<String> taskList = new Vector<String>();
+			mTaskInfo = new HashMap<String, TaskData>();
+
+			try {
+				ZipInputStream zis = new ZipInputStream(new FileInputStream(fl));
+				ZipEntry entry;
+				while ((entry = zis.getNextEntry()) != null) {
+					taskList.add(entry.getName());
+					zis.closeEntry();
+				}
+
+				mZipFile = new ZipFile(fl.getPath());
+			} catch (Exception e) {
+				System.out.println(e.getMessage());
+			}
+
+			Collections.sort(taskList, new SortByName());
+			mList.update(taskList);
+		}
+	}
+
 	public void openPath(String path) {
 		
 		File p = new File(path);
