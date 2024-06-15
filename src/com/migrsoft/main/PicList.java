@@ -19,9 +19,9 @@ import javax.swing.event.ListSelectionListener;
 public class PicList {
 	
 	public interface ActListener {
-		public void onSelect(String name);
-		public void onDelete(Vector<String> names);
-		public void onRemove();
+		void onSelect(String name);
+		void onDelete(Vector<String> names);
+		void onRemove();
 	}
 
 	private DefaultListModel<String> mModel;
@@ -136,6 +136,18 @@ public class PicList {
 	public int getSelectedIndex() {
 		return mList.getSelectedIndex();
 	}
+
+	public void setSelectedIndex(int index) {
+		mList.setSelectedIndex(index);
+	}
+
+	public String getStringByIndex(int index) {
+		try {
+			return mModel.get(index);
+		} catch (ArrayIndexOutOfBoundsException e) {
+			return "";
+		}
+	}
 	
 	public int getTotal() {
 		return mModel.getSize();
@@ -177,28 +189,24 @@ public class PicList {
 			lst.add((String)mModel.get(i));
 		return lst;
 	}
-	
-	public int[] getSelectedIndices() {
-		return mList.getSelectedIndices();
-	}
-	
+
 	public Vector<String> getListSelected() {
 		Vector<String> lst = new Vector<String>();
 		int[] indices = mList.getSelectedIndices();
 		if (indices.length > 1) {
-			for (int i = 0; i < indices.length; i++) {
-				lst.add(mModel.get(indices[i]));
-			}
+            for (int index : indices) {
+                lst.add(mModel.get(index));
+            }
 		}
 		return lst;
 	}
 
 	private void onMenuDelete() {
 		Vector<String> selected = getListSelected();
-		if (selected.size() == 0) {
-			Object o = mList.getSelectedValue();
+		if (selected.isEmpty()) {
+			String o = mList.getSelectedValue();
 			mModel.removeElement(o);
-			selected.add((String)o);
+			selected.add(o);
 		} else {
 			for (String s : selected) {
 				mModel.removeElement(s);
@@ -209,7 +217,7 @@ public class PicList {
 
 	private void onMenuRemove() {
 		Vector<String> selected = getListSelected();
-		if (selected.size() == 0) {
+		if (selected.isEmpty()) {
 			// 单选
 			Object o = mList.getSelectedValue();
 			mModel.removeElement(o);

@@ -13,16 +13,12 @@ import java.awt.image.ConvolveOp;
 import java.awt.image.Kernel;
 import java.awt.image.WritableRaster;
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
-import java.nio.Buffer;
 import java.util.Iterator;
-import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 import javax.imageio.*;
-import javax.imageio.metadata.IIOMetadata;
 import javax.imageio.stream.FileImageInputStream;
 import javax.imageio.stream.FileImageOutputStream;
 import javax.imageio.stream.ImageInputStream;
@@ -92,20 +88,13 @@ public class PicWorker {
 			newPath = path + extName;
 		else
 			newPath = path.substring(0, ext) + extName;
-		
-		switch (param.getOutputFormat()) {
-			case PicWorkerParam.OUTPUT_FORMAT_PNG:
-				ret = saveAsPng(image, newPath);
-				break;
 
-			case PicWorkerParam.OUTPUT_FORMAT_JPG:
-				ret = saveAsJpeg(image, newPath, param);
-				break;
-
-			case PicWorkerParam.OUTPUT_FORMAT_WEBP:
-				ret = saveAsWebp(image, newPath);
-				break;
-		}
+        ret = switch (param.getOutputFormat()) {
+            case PicWorkerParam.OUTPUT_FORMAT_PNG -> saveAsPng(image, newPath);
+            case PicWorkerParam.OUTPUT_FORMAT_JPG -> saveAsJpeg(image, newPath, param);
+            case PicWorkerParam.OUTPUT_FORMAT_WEBP -> saveAsWebp(image, newPath);
+            default -> false;
+        };
 		
 		return ret;
 	}

@@ -496,13 +496,23 @@ public class ComicCrop extends JFrame {
 		mViewer = new PicViewer();
 		mViewer.setActListener(new PicViewer.ActListener() {
 			@Override
-			public void loadPrevItem() {
-				mList.loadPrevItem();
+			public ZipFile getZip() {
+				return mZipFile;
 			}
 
 			@Override
-			public void loadNextItem() {
-				mList.loadNextItem();
+			public int getCurrentIndex() {
+				return mList.getSelectedIndex();
+			}
+
+			@Override
+			public void setCurrentIndex(int index) {
+				mList.setSelectedIndex(index);
+			}
+
+			@Override
+			public String getStringByIndex(int index) {
+				return mList.getStringByIndex(index);
 			}
 		});
 		
@@ -513,7 +523,7 @@ public class ComicCrop extends JFrame {
 			public void onSelect(String name) {
 				updateTitle();
 				if (mZipFile != null) {
-					mViewer.load(mZipFile, name);
+					mViewer.load(name);
 				} else {
 					mEditor.load(mLastPath + name);
 				}
@@ -698,7 +708,7 @@ public class ComicCrop extends JFrame {
 				taskList.add(f.getName());
 			}
 
-			Collections.sort(taskList, new SortByName());
+			taskList.sort(new SortByName());
 			mList.update(taskList);
 
 			resetEditor();
@@ -755,7 +765,7 @@ public class ComicCrop extends JFrame {
 				System.out.println(e.getMessage());
 			}
 
-			Collections.sort(taskList, new SortByName());
+			taskList.sort(new SortByName());
 			mList.update(taskList);
 		}
 	}
@@ -770,7 +780,8 @@ public class ComicCrop extends JFrame {
 		mTaskInfo = new HashMap<String, TaskData>();
 		
 		String ext = MainParam.getInstance().getOutputExtName();
-		for (String s : all) {
+        assert all != null;
+        for (String s : all) {
 			File f = new File(path + s);
 			if (f.isFile() && !f.isHidden()) {
 				if (f.getName().endsWith(ext)) {
@@ -779,7 +790,7 @@ public class ComicCrop extends JFrame {
 			}
 		}
 		
-		Collections.sort(taskList, new SortByName());
+		taskList.sort(new SortByName());
 		mList.update(taskList);
 		
 		resetEditor();
@@ -812,6 +823,7 @@ public class ComicCrop extends JFrame {
 				mEditor.reload();
 			}
 		} catch (Exception e) {
+			System.out.println(e.getMessage());
 		}
 	}
 	
@@ -820,7 +832,8 @@ public class ComicCrop extends JFrame {
 			return;
 		
 		if (JOptionPane.showConfirmDialog(
-				this, "是否保存现在工作？", "保存确认", JOptionPane.YES_NO_OPTION) == JOptionPane.NO_OPTION)
+				this, "是否保存现在工作？",
+				"保存确认", JOptionPane.YES_NO_OPTION) == JOptionPane.NO_OPTION)
 			return;
 		
 		mEditor.saveTaskData();
@@ -830,6 +843,7 @@ public class ComicCrop extends JFrame {
 			os.writeObject(mTaskInfo);
 			os.close();
 		} catch (Exception e) {
+			System.out.println(e.getMessage());
 		}
 	}
 	
@@ -845,7 +859,8 @@ public class ComicCrop extends JFrame {
 		
 		if (all.length > 0) {
 			if (JOptionPane.showConfirmDialog(
-					this, "是否清空 " + path + " 文件夹？", "删除确认", JOptionPane.YES_NO_OPTION) == JOptionPane.NO_OPTION)
+					this, "是否清空 " + path + " 文件夹？",
+					"删除确认", JOptionPane.YES_NO_OPTION) == JOptionPane.NO_OPTION)
 				return;
 		}
 		
@@ -869,7 +884,7 @@ public class ComicCrop extends JFrame {
 	
 	private void batchSplitWork() {
 		Vector<String> taskList = mList.getList();
-		if (taskList.size() > 0) {
+		if (!taskList.isEmpty()) {
 			mEditor.saveTaskData();
 			
 			clearTempDir(mLastPath + mEditor.getSaveDir());
@@ -920,12 +935,13 @@ public class ComicCrop extends JFrame {
 	
 	private void batchRenameWork() {
 		Vector<String> list = mList.getListSelected();
-		if (list.size() == 0) {
+		if (list.isEmpty()) {
 			list = mList.getList();
 		}
-		if (list.size() > 0) {
+		if (!list.isEmpty()) {
 			if (JOptionPane.showConfirmDialog(
-					this, "是否重命名列表中的图片？", "确认", JOptionPane.YES_NO_OPTION) == JOptionPane.NO_OPTION)
+					this, "是否重命名列表中的图片？",
+					"确认", JOptionPane.YES_NO_OPTION) == JOptionPane.NO_OPTION)
 				return;
 			
 			String prefix = JOptionPane.showInputDialog("输入文件名前缀");
@@ -940,10 +956,10 @@ public class ComicCrop extends JFrame {
 
 	private void batchRenamePlusWork() {
 		Vector<String> list = mList.getListSelected();
-		if (list.size() == 0) {
+		if (list.isEmpty()) {
 			list = mList.getList();
 		}
-		if (list.size() > 0) {
+		if (!list.isEmpty()) {
 			final RenamePlusDlg dlg = new RenamePlusDlg();
 			dlg.setData(list, mLastPath);
 			dlg.setMyActionListener(new RenamePlusDlg.MyActionListener() {
@@ -959,7 +975,7 @@ public class ComicCrop extends JFrame {
 	
 	private void batchCropWork() {
 		Vector<String> taskList = mList.getList();
-		if (taskList.size() > 0) {
+		if (!taskList.isEmpty()) {
 			mEditor.saveTaskData();
 			
 			ProgressDlg dlg = new ProgressDlg(this);
@@ -986,7 +1002,7 @@ public class ComicCrop extends JFrame {
 	
 	private void batchCropAndScaleWork() {
 		Vector<String> taskList = mList.getList();
-		if (taskList.size() > 0) {
+		if (!taskList.isEmpty()) {
 			mEditor.saveTaskData();
 			
 			ProgressDlg dlg = new ProgressDlg(this);
@@ -1013,7 +1029,7 @@ public class ComicCrop extends JFrame {
 	
 	private void batchCropAndScaleWidthWork() {
 		Vector<String> taskList = mList.getList();
-		if (taskList.size() > 0) {
+		if (!taskList.isEmpty()) {
 			mEditor.saveTaskData();
 			
 			ProgressDlg dlg = new ProgressDlg(this);
@@ -1047,8 +1063,7 @@ public class ComicCrop extends JFrame {
 	
 	public void saveTaskData(String path, TaskData data) {
 		String name = getNameFromPath(path);
-		if (mTaskInfo.containsKey(name))
-			mTaskInfo.remove(name);
+        mTaskInfo.remove(name);
 		mTaskInfo.put(name, data);
 	}
 	
@@ -1070,17 +1085,8 @@ public class ComicCrop extends JFrame {
 	static public ComicCrop getInstance() {
 		return sInstance;
 	}
-	
-	@SuppressWarnings("unused")
-	public static void main(String[] args) {
-		
-		Runnable r = new Runnable() {
-			public void run() {
-				sInstance = new ComicCrop();
-			}
-		};
-		EventQueue.invokeLater(r);
-		
+
+	private static void accessCounter() {
 		Runnable checkin = new Runnable() {
 
 			@Override
@@ -1091,16 +1097,26 @@ public class ComicCrop extends JFrame {
 					conn.setRequestProperty("Accept-Encoding", "gzip");
 					conn.connect();
 					int code = conn.getResponseCode();
-					if (code == 200) {
-					}
-				}
-				catch (Exception e) {
+					System.out.println("http: " + code);
+                } catch (Exception e) {
+					System.out.println(e.getMessage());
 				}
 				finally {
 					System.out.println("Welcome to ComicCrop!");
 				}
 			}
 		};
-//		new Thread(checkin).start();
+		new Thread(checkin).start();
+	}
+
+	@SuppressWarnings("unused")
+	public static void main(String[] args) {
+		
+		Runnable r = new Runnable() {
+			public void run() {
+				sInstance = new ComicCrop();
+			}
+		};
+		EventQueue.invokeLater(r);
 	}
 }

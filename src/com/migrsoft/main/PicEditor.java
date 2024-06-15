@@ -15,6 +15,7 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.Serial;
 import java.util.ArrayList;
 import java.util.zip.ZipFile;
 import javax.swing.JOptionPane;
@@ -27,6 +28,7 @@ public class PicEditor extends JPanel {
 	/**
 	 * 
 	 */
+	@Serial
 	private static final long serialVersionUID = 5499877512153985223L;
 	
 	public interface ActListener {
@@ -102,7 +104,7 @@ public class PicEditor extends JPanel {
 
 	private int mAdjustEdge = 1;
 	
-	private Font mFont;
+	private final Font mFont;
 	
 	public void useSplitMode() {
 //		promptSave();
@@ -129,7 +131,7 @@ public class PicEditor extends JPanel {
 		}
 		
 		mHorizonal = horizonal;
-		mMaxSplit = (splitNum > MAX_EDGE_NUM) ? MAX_EDGE_NUM : splitNum;
+		mMaxSplit = Math.min(splitNum, MAX_EDGE_NUM);
 		mLeftToRight = ltor;
 		
 		if (update && mImage != null) {
