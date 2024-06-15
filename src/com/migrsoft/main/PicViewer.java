@@ -84,7 +84,7 @@ public class PicViewer extends JPanel implements MouseWheelListener {
 
     @Override
     public void mouseWheelMoved(MouseWheelEvent evt) {
-        int mScrollAmount = 10;
+        int mScrollAmount = 20;
         int amount = evt.getUnitsToScroll() * mScrollAmount;
         mViewY += amount;
         int viewY = mViewY;
@@ -163,6 +163,8 @@ public class PicViewer extends JPanel implements MouseWheelListener {
         assert mActListener != null;
 
         mImageList.clear();
+        System.gc();
+
         mTotalImageHeight = 0;
         mViewY = 0;
         mViewWidth = getWidth();
@@ -187,11 +189,25 @@ public class PicViewer extends JPanel implements MouseWheelListener {
             mImageList.addLast(ii);
         } else {
             mImageList.addFirst(ii);
-        }
-        mTotalImageHeight += ii.mImage.getHeight();
-        if (!last) {
             mViewY += image.getHeight();
         }
+        mTotalImageHeight += ii.mImage.getHeight();
+        removeImage(!last);
 //        System.out.println("add image -> index:" + index + " imageH:" + image.getHeight());
+    }
+
+    private void removeImage(boolean last) {
+        if (mImageList.size() > 5) {
+            ImageItem ii;
+            if (last) {
+                ii = mImageList.removeLast();
+            } else {
+                ii = mImageList.removeFirst();
+                mViewY -= ii.mImage.getHeight();
+            }
+            mTotalImageHeight -= ii.mImage.getHeight();
+            ii.mImage = null;
+            System.gc();
+        }
     }
 }
