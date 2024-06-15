@@ -45,6 +45,8 @@ public class PicViewer extends JPanel implements MouseWheelListener {
 
     private int mLastLoaded = -1;
 
+    private int mCurrentIndex = -1;
+
     private class ImageLoaderWorker extends SwingWorker<BufferedImage, Void> {
 
         private ZipFile mZip;
@@ -133,7 +135,8 @@ public class PicViewer extends JPanel implements MouseWheelListener {
                     if (first) {
                         first = false;
                         hintSize = ii.mImage.getWidth() + " x " + ii.mImage.getHeight();
-//                        mActListener.setCurrentIndex(ii.mIndex);
+                        mCurrentIndex = ii.mIndex;
+                        mActListener.setCurrentIndex(mCurrentIndex);
                     }
                     dx1 = ii.mViewX;
                     dx2 = dx1 + ii.mImage.getWidth();
@@ -161,6 +164,10 @@ public class PicViewer extends JPanel implements MouseWheelListener {
      */
     public void load(String name) {
         assert mActListener != null;
+
+        if (mActListener.getCurrentIndex() == mCurrentIndex) {
+            return;
+        }
 
         mImageList.clear();
         System.gc();

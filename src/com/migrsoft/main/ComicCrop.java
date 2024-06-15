@@ -508,6 +508,7 @@ public class ComicCrop extends JFrame {
 			@Override
 			public void setCurrentIndex(int index) {
 				mList.setSelectedIndex(index);
+				updateTitle();
 			}
 
 			@Override
