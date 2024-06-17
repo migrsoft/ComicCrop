@@ -84,6 +84,16 @@ public class PicViewer extends JPanel implements MouseWheelListener {
         mFont = new Font("SansSerif", Font.BOLD, 20);
     }
 
+    void reset() {
+        mCurrentIndex = -1;
+        mTotalImageHeight = 0;
+        mViewY = 0;
+        mImageList.clear();
+        System.gc();
+        revalidate();
+        repaint();
+    }
+
     @Override
     public void mouseWheelMoved(MouseWheelEvent evt) {
         int mScrollAmount = 20;

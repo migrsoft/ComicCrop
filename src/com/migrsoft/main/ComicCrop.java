@@ -23,6 +23,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
 
+import javax.imageio.ImageIO;
 import javax.swing.ButtonGroup;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JFileChooser;
@@ -768,6 +769,7 @@ public class ComicCrop extends JFrame {
 
 			taskList.sort(new SortByName());
 			mList.update(taskList);
+			mViewer.reset();
 		}
 	}
 
@@ -1112,6 +1114,8 @@ public class ComicCrop extends JFrame {
 
 	@SuppressWarnings("unused")
 	public static void main(String[] args) {
+
+		ImageIO.scanForPlugins();
 		
 		Runnable r = new Runnable() {
 			public void run() {
