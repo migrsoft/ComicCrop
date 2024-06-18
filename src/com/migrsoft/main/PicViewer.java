@@ -1,11 +1,11 @@
 package com.migrsoft.main;
 
 import com.migrsoft.image.PicWorker;
+import com.migrsoft.image.TesserOCR;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.MouseWheelEvent;
-import java.awt.event.MouseWheelListener;
+import java.awt.event.*;
 import java.awt.font.FontRenderContext;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
@@ -13,7 +13,53 @@ import java.util.LinkedList;
 import java.util.ListIterator;
 import java.util.zip.ZipFile;
 
-public class PicViewer extends JPanel implements MouseWheelListener {
+public class PicViewer extends JPanel
+        implements MouseListener, MouseMotionListener, MouseWheelListener {
+
+    private Rectangle mSelectedRect = new Rectangle();
+
+    @Override
+    public void mouseClicked(MouseEvent e) {
+        if (e.getButton() == MouseEvent.BUTTON3) {
+            mPopMenu.show(e.getComponent(), e.getX(), e.getY());
+        }
+    }
+
+    @Override
+    public void mousePressed(MouseEvent e) {
+        if (e.getButton() == MouseEvent.BUTTON1) {
+            float x = e.getX();
+            float y = e.getY();
+            mSelectedRect.setRect(x, y, 10, 10);
+            repaint();
+        }
+    }
+
+    @Override
+    public void mouseReleased(MouseEvent e) {
+    }
+
+    @Override
+    public void mouseEntered(MouseEvent e) {
+    }
+
+    @Override
+    public void mouseExited(MouseEvent e) {
+    }
+
+    @Override
+    public void mouseDragged(MouseEvent e) {
+        int dx = e.getX() - mSelectedRect.x;
+        int dy = e.getY() - mSelectedRect.y;
+        if (dx >= 10 && dy >= 10) {
+            mSelectedRect.setSize(dx, dy);
+            repaint();
+        }
+    }
+
+    @Override
+    public void mouseMoved(MouseEvent e) {
+    }
 
     public interface ActListener {
         ZipFile getZip();
@@ -79,12 +125,45 @@ public class PicViewer extends JPanel implements MouseWheelListener {
         }
     }
 
+    private JPopupMenu mPopMenu;
+
     PicViewer() {
+        addMouseListener(this);
+        addMouseMotionListener(this);
         addMouseWheelListener(this);
+        createPopupMenu();
         mFont = new Font("SansSerif", Font.BOLD, 20);
+        setFocusable(true);
     }
 
-    void reset() {
+    private void createPopupMenu() {
+        final String menuPopOcr = "OCR";
+
+        ActionListener popMenuHandler = new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (e.getActionCommand().equals(menuPopOcr)) {
+                    onPopMenuOcr();
+                }
+            }
+        };
+
+        mPopMenu = new JPopupMenu();
+        JMenuItem menuOcr = new JMenuItem(menuPopOcr);
+        menuOcr.addActionListener(popMenuHandler);
+        mPopMenu.add(menuOcr);
+    }
+
+//    private BufferedImage tempImage;
+    private Rectangle ocrRect = new Rectangle();
+
+    private void onPopMenuOcr() {
+        BufferedImage image = getCurrentImage();
+        assert image != null;
+        System.out.println(TesserOCR.ocr(image, ocrRect));
+    }
+
+    public void reset() {
         mCurrentIndex = -1;
         mTotalImageHeight = 0;
         mViewY = 0;
@@ -124,7 +203,7 @@ public class PicViewer extends JPanel implements MouseWheelListener {
 
         Graphics2D g2 = (Graphics2D) g;
 
-        Rectangle2D area = new Rectangle2D.Double(0, 0, getWidth(), getHeight());
+        Rectangle area = new Rectangle(0, 0, getWidth(), getHeight());
         g2.setPaint(Color.DARK_GRAY);
         g2.fill(area);
 
@@ -135,13 +214,15 @@ public class PicViewer extends JPanel implements MouseWheelListener {
             int sx1, sx2, sy1, sy2;
             boolean first = true;
             String hintSize = "? x ?";
+            Rectangle imageRect = new Rectangle();
+            Rectangle viewRect = new Rectangle();
             while (it.hasNext() && y < mViewY + mViewHeight) {
                 ImageItem ii = it.next();
-                Rectangle2D image = new Rectangle2D.Double(0, y, ii.mImage.getWidth(), ii.mImage.getHeight());
-                Rectangle2D view = new Rectangle2D.Double(0, mViewY, mViewWidth, mViewHeight);
-                if (image.intersects(view)) {
-                    Rectangle2D isr = new Rectangle2D.Double();
-                    Rectangle2D.intersect(image, view, isr);
+                imageRect.setBounds(0, y, ii.mImage.getWidth(), ii.mImage.getHeight());
+                viewRect.setBounds(0, mViewY, mViewWidth, mViewHeight);
+                if (imageRect.intersects(viewRect)) {
+                    Rectangle isr = new Rectangle();
+                    Rectangle.intersect(imageRect, viewRect, isr);
                     if (first) {
                         first = false;
                         hintSize = ii.mImage.getWidth() + " x " + ii.mImage.getHeight();
@@ -153,10 +234,10 @@ public class PicViewer extends JPanel implements MouseWheelListener {
                     dy2 = dy1 + (int)isr.getHeight();
                     sx1 = 0;
                     sx2 = sx1 + ii.mImage.getWidth();
-                    sy1 = (int)isr.getY() - y;
-                    sy2 = sy1 + (int)isr.getHeight();
+                    sy1 = isr.y - y;
+                    sy2 = sy1 + isr.height;
                     g2.drawImage(ii.mImage, dx1, dy1, dx2, dy2, sx1, sy1, sx2, sy2, null);
-                    dy1 += (int)isr.getHeight();
+                    dy1 += isr.height;
                 }
                 y += ii.mImage.getHeight();
             }
@@ -166,7 +247,19 @@ public class PicViewer extends JPanel implements MouseWheelListener {
             g2.setFont(mFont);
             g2.setPaint(Color.LIGHT_GRAY);
             g2.drawString(hintSize, 2, -(int) bounds.getY() + 2);
+
+            g2.setPaint(Color.RED);
+            g2.drawRect(mSelectedRect.x, mSelectedRect.y, mSelectedRect.width, mSelectedRect.height);
         }
+
+//        if (tempImage != null) {
+//            g2.drawImage(tempImage,
+//                    0, 0,
+//                    ocrRect.width, ocrRect.height,
+//                    ocrRect.x, ocrRect.y,
+//                    ocrRect.x + ocrRect.width, ocrRect.y + ocrRect.height,
+//                    null);
+//        }
     }
 
     /*
@@ -210,7 +303,6 @@ public class PicViewer extends JPanel implements MouseWheelListener {
         }
         mTotalImageHeight += ii.mImage.getHeight();
         removeImage(!last);
-//        System.out.println("add image -> index:" + index + " imageH:" + image.getHeight());
     }
 
     private void removeImage(boolean last) {
@@ -226,5 +318,23 @@ public class PicViewer extends JPanel implements MouseWheelListener {
             ii.mImage = null;
             System.gc();
         }
+    }
+
+    private BufferedImage getCurrentImage() {
+        if (!mImageList.isEmpty()) {
+            int y = 0;
+            Rectangle imageRect = new Rectangle();
+            for (ImageItem ii : mImageList) {
+                imageRect.setBounds(0, y, ii.mImage.getWidth(), ii.mImage.getHeight());
+                if (imageRect.contains(mSelectedRect.x, mSelectedRect.y + mViewY)) {
+                    ocrRect.x = mSelectedRect.x - ii.mViewX;
+                    ocrRect.y = mSelectedRect.y + (mViewY - y);
+                    ocrRect.setSize(mSelectedRect.width, mSelectedRect.height);
+                    return ii.mImage;
+                }
+                y += ii.mImage.getHeight();
+            }
+        }
+        return null;
     }
 }

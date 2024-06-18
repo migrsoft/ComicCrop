@@ -277,10 +277,7 @@ public class PicEditor extends JPanel {
 				mLastX = event.getX();
 				mLastY = event.getY();
 				checkEdge(event.getPoint());
-			}
-			else if (event.getButton() == MouseEvent.BUTTON2) {
-			}
-			else if (event.getButton() == MouseEvent.BUTTON3) {
+			} else if (event.getButton() == MouseEvent.BUTTON3) {
 				crop();
 			}
 		}
@@ -289,10 +286,11 @@ public class PicEditor extends JPanel {
 		public void mouseReleased(MouseEvent event) {
 			if (event.getButton() == MouseEvent.BUTTON1) {
 				setCursor(Cursor.getDefaultCursor());
-				if (mWorkMode == WORK_MODE_CROP)
+				if (mWorkMode == WORK_MODE_CROP) {
 					createCropEdge();
-				else if (mWorkMode == WORK_MODE_SPLIT)
+				} else if (mWorkMode == WORK_MODE_SPLIT) {
 					createSplitSides();
+				}
 			}
 		}
 	}
@@ -304,10 +302,11 @@ public class PicEditor extends JPanel {
 			int dx = event.getX() - mLastX;
 			int dy = event.getY() - mLastY;
 			
-			if (mWorkMode == WORK_MODE_SPLIT)
+			if (mWorkMode == WORK_MODE_SPLIT) {
 				changeSplitSide(dx, dy);
-			else if (mWorkMode == WORK_MODE_CROP)
+			} else if (mWorkMode == WORK_MODE_CROP) {
 				changeCropEdge(dx, dy);
+			}
 			
 			mLastX = event.getX();
 			mLastY = event.getY();
