@@ -1,21 +1,25 @@
 package com.migrsoft.main;
 
 import com.migrsoft.image.PicWorker;
-import com.migrsoft.image.TesserOCR;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.awt.font.FontRenderContext;
-import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
-import java.util.LinkedList;
-import java.util.ListIterator;
 import java.util.zip.ZipFile;
 
 public class PicViewer extends JPanel
         implements MouseListener, MouseMotionListener, MouseWheelListener {
 
+    private enum Mode {
+        View,
+        Create,
+        Edit,
+    }
+
+    private Mode currentMode = Mode.View;
+
+    private final int MINI_SIDE = 20;
     private Rectangle mSelectedRect = new Rectangle();
 
     @Override
@@ -28,15 +32,20 @@ public class PicViewer extends JPanel
     @Override
     public void mousePressed(MouseEvent e) {
         if (e.getButton() == MouseEvent.BUTTON1) {
-            float x = e.getX();
-            float y = e.getY();
-            mSelectedRect.setRect(x, y, 10, 10);
-            repaint();
+            if (currentMode == Mode.Create) {
+                float x = e.getX();
+                float y = e.getY();
+                mSelectedRect.setRect(x, y, MINI_SIDE, MINI_SIDE);
+                repaint();
+            }
         }
     }
 
     @Override
     public void mouseReleased(MouseEvent e) {
+        if (currentMode == Mode.Create) {
+            currentMode = Mode.View;
+        }
     }
 
     @Override
@@ -49,11 +58,13 @@ public class PicViewer extends JPanel
 
     @Override
     public void mouseDragged(MouseEvent e) {
-        int dx = e.getX() - mSelectedRect.x;
-        int dy = e.getY() - mSelectedRect.y;
-        if (dx >= 10 && dy >= 10) {
-            mSelectedRect.setSize(dx, dy);
-            repaint();
+        if (currentMode == Mode.Create) {
+            int dx = e.getX() - mSelectedRect.x;
+            int dy = e.getY() - mSelectedRect.y;
+            if (dx >= MINI_SIDE && dy >= MINI_SIDE) {
+                mSelectedRect.setSize(dx, dy);
+                repaint();
+            }
         }
     }
 
@@ -61,55 +72,44 @@ public class PicViewer extends JPanel
     public void mouseMoved(MouseEvent e) {
     }
 
-    public interface ActListener {
+    public interface PicViewerCallback {
         ZipFile getZip();
         int getCurrentIndex();
         void setCurrentIndex(int index);
         String getStringByIndex(int index);
     }
 
-    private ActListener mActListener = null;
+    private PicViewerCallback callback = null;
 
-    public void setActListener(ActListener listener) {
-        mActListener = listener;
+    public void setActListener(PicViewerCallback listener) {
+        callback = listener;
     }
 
-    private class ImageItem {
-        public int mIndex;
-        public int mViewX;
-        public BufferedImage mImage;
-    }
+    private LongImage longImage = null;
 
-    LinkedList<ImageItem> mImageList = new LinkedList<>();
+    private int viewY;
+    private int viewWidth;
+    private int viewHeight;
 
-    private int mViewY;
-    private int mViewWidth;
-    private int mViewHeight;
-    private int mTotalImageHeight;
-
-    private final Font mFont;
-
-    private int mLastLoaded = -1;
-
-    private int mCurrentIndex = -1;
+    private int lastLoaded = -1;
 
     private class ImageLoaderWorker extends SwingWorker<BufferedImage, Void> {
 
-        private ZipFile mZip;
-        private String mName;
-        private int mIndex;
-        private boolean mAtLast;
+        private final ZipFile zip;
+        private final String name;
+        private final int index;
+        private final boolean atLast;
 
         public ImageLoaderWorker(ZipFile zip, String name, int index, boolean last) {
-            mZip = zip;
-            mName = name;
-            mIndex = index;
-            mAtLast = last;
+            this.zip = zip;
+            this.name = name;
+            this.index = index;
+            atLast = last;
         }
 
         @Override
         protected BufferedImage doInBackground() throws Exception {
-            return PicWorker.load(mZip, mName, MainParam.getInstance());
+            return PicWorker.load(zip, name, MainParam.getInstance());
         }
 
         @Override
@@ -117,7 +117,7 @@ public class PicViewer extends JPanel
             try {
                 BufferedImage image = get();
                 if (image != null) {
-                    addImage(image, mIndex, mAtLast);
+                    viewY += longImage.addImage(image, index, atLast);
                 }
             } catch (Exception e) {
                 System.out.println(e.getMessage());
@@ -132,25 +132,36 @@ public class PicViewer extends JPanel
         addMouseMotionListener(this);
         addMouseWheelListener(this);
         createPopupMenu();
-        mFont = new Font("SansSerif", Font.BOLD, 20);
         setFocusable(true);
     }
 
     private void createPopupMenu() {
-        final String menuPopOcr = "OCR";
-
         ActionListener popMenuHandler = new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                if (e.getActionCommand().equals(menuPopOcr)) {
-                    onPopMenuOcr();
+                switch (e.getActionCommand()) {
+                    case StringResources.MENU_POP_CREATE:
+                        currentMode = Mode.Create;
+                        break;
+                    case StringResources.MENU_POP_DELETE:
+                        break;
+                    case StringResources.MENU_POP_OCR:
+                        onPopMenuOcr();
+                        break;
+                    default:
                 }
             }
         };
 
         mPopMenu = new JPopupMenu();
-        JMenuItem menuOcr = new JMenuItem(menuPopOcr);
+        JMenuItem menuCreate = new JMenuItem(StringResources.MENU_POP_CREATE);
+        JMenuItem menuDelete = new JMenuItem(StringResources.MENU_POP_DELETE);
+        JMenuItem menuOcr = new JMenuItem(StringResources.MENU_POP_OCR);
+        menuCreate.addActionListener(popMenuHandler);
+        menuDelete.addActionListener(popMenuHandler);
         menuOcr.addActionListener(popMenuHandler);
+        mPopMenu.add(menuCreate);
+        mPopMenu.add(menuDelete);
         mPopMenu.add(menuOcr);
     }
 
@@ -158,40 +169,40 @@ public class PicViewer extends JPanel
     private Rectangle ocrRect = new Rectangle();
 
     private void onPopMenuOcr() {
-        BufferedImage image = getCurrentImage();
-        assert image != null;
-        System.out.println(TesserOCR.ocr(image, ocrRect));
+//        BufferedImage image = getCurrentImage();
+//        assert image != null;
+//        System.out.println(TesserOCR.ocr(image, ocrRect));
     }
 
     public void reset() {
-        mCurrentIndex = -1;
-        mTotalImageHeight = 0;
-        mViewY = 0;
-        mImageList.clear();
-        System.gc();
+        viewY = 0;
+        if (longImage != null) {
+            longImage.reset();
+        }
         revalidate();
         repaint();
     }
 
     @Override
     public void mouseWheelMoved(MouseWheelEvent evt) {
-        int mScrollAmount = 20;
-        int amount = evt.getUnitsToScroll() * mScrollAmount;
-        mViewY += amount;
-        int viewY = mViewY;
-        mViewY = Math.max(0, Math.min(mViewY, mTotalImageHeight - mViewHeight));
-        invalidate();
-        repaint();
+        if (currentMode == Mode.View && longImage != null) {
+            final int scrollAmount = 20;
+            int amount = evt.getUnitsToScroll() * scrollAmount;
+            viewY += amount;
+            int tempY = viewY;
+            viewY = Math.max(0, Math.min(viewY, longImage.height - viewHeight));
+            invalidate();
+            repaint();
 
-        if (!mImageList.isEmpty()) {
-            if (viewY < 0 || viewY + mViewHeight > mTotalImageHeight) {
-                assert mImageList.peekFirst() != null;
-                assert mImageList.peekLast() != null;
-                int index = (viewY < 0) ? mImageList.peekFirst().mIndex - 1 : mImageList.peekLast().mIndex + 1;
-                String name = mActListener.getStringByIndex(index);
-                if (mLastLoaded != index && !name.isEmpty()) {
-                    mLastLoaded = index;
-                    new ImageLoaderWorker(mActListener.getZip(), name, index, viewY > 0).execute();
+            if (tempY < 0 || tempY + viewHeight > longImage.height) {
+                int index = (tempY < 0)
+                        ? longImage.getIndexAtFirst() - 1
+                        : longImage.getIndexAtLast() + 1;
+                String name = callback.getStringByIndex(index);
+                if (lastLoaded != index && !name.isEmpty()) {
+//                    System.out.println("last " + lastLoaded + " index " + index + " viewY " + viewY);
+                    lastLoaded = index;
+                    new ImageLoaderWorker(callback.getZip(), name, index, tempY > 0).execute();
                 }
             }
         }
@@ -207,50 +218,16 @@ public class PicViewer extends JPanel
         g2.setPaint(Color.DARK_GRAY);
         g2.fill(area);
 
-        if (!mImageList.isEmpty()) {
-            ListIterator<ImageItem> it = mImageList.listIterator();
-            int y = 0;
-            int dx1, dx2, dy1 = 0, dy2;
-            int sx1, sx2, sy1, sy2;
-            boolean first = true;
-            String hintSize = "? x ?";
-            Rectangle imageRect = new Rectangle();
-            Rectangle viewRect = new Rectangle();
-            while (it.hasNext() && y < mViewY + mViewHeight) {
-                ImageItem ii = it.next();
-                imageRect.setBounds(0, y, ii.mImage.getWidth(), ii.mImage.getHeight());
-                viewRect.setBounds(0, mViewY, mViewWidth, mViewHeight);
-                if (imageRect.intersects(viewRect)) {
-                    Rectangle isr = new Rectangle();
-                    Rectangle.intersect(imageRect, viewRect, isr);
-                    if (first) {
-                        first = false;
-                        hintSize = ii.mImage.getWidth() + " x " + ii.mImage.getHeight();
-                        mCurrentIndex = ii.mIndex;
-                        mActListener.setCurrentIndex(mCurrentIndex);
-                    }
-                    dx1 = ii.mViewX;
-                    dx2 = dx1 + ii.mImage.getWidth();
-                    dy2 = dy1 + (int)isr.getHeight();
-                    sx1 = 0;
-                    sx2 = sx1 + ii.mImage.getWidth();
-                    sy1 = isr.y - y;
-                    sy2 = sy1 + isr.height;
-                    g2.drawImage(ii.mImage, dx1, dy1, dx2, dy2, sx1, sy1, sx2, sy2, null);
-                    dy1 += isr.height;
-                }
-                y += ii.mImage.getHeight();
-            }
-
-            FontRenderContext frc = g2.getFontRenderContext();
-            Rectangle2D bounds = mFont.getStringBounds(hintSize, frc);
-            g2.setFont(mFont);
-            g2.setPaint(Color.LIGHT_GRAY);
-            g2.drawString(hintSize, 2, -(int) bounds.getY() + 2);
-
-            g2.setPaint(Color.RED);
-            g2.drawRect(mSelectedRect.x, mSelectedRect.y, mSelectedRect.width, mSelectedRect.height);
+        if (longImage != null) {
+            Rectangle viewPort = new Rectangle();
+            viewPort.setBounds(0, viewY, viewWidth, viewHeight);
+            longImage.paint(g2, viewPort);
+            callback.setCurrentIndex(longImage.getCurrentIndex());
         }
+//
+//            g2.setPaint(Color.RED);
+//            g2.drawRect(mSelectedRect.x, mSelectedRect.y, mSelectedRect.width, mSelectedRect.height);
+//        }
 
 //        if (tempImage != null) {
 //            g2.drawImage(tempImage,
@@ -266,75 +243,46 @@ public class PicViewer extends JPanel
      * 打开指定的图片
      */
     public void load(String name) {
-        assert mActListener != null;
+        assert callback != null;
 
-        if (mActListener.getCurrentIndex() == mCurrentIndex) {
+        if (longImage == null) {
+            longImage = new LongImage();
+        }
+
+//        System.out.println("load " + callback.getCurrentIndex() + " " + longImage.getCurrentIndex());
+        if (callback.getCurrentIndex() == longImage.getCurrentIndex()) {
             return;
         }
 
-        mImageList.clear();
-        System.gc();
+        viewY = 0;
+        viewWidth = getWidth();
+        viewHeight = getHeight();
 
-        mTotalImageHeight = 0;
-        mViewY = 0;
-        mViewWidth = getWidth();
-        mViewHeight = getHeight();
-
-        BufferedImage image = PicWorker.load(mActListener.getZip(), name, MainParam.getInstance());
+        BufferedImage image = PicWorker.load(callback.getZip(), name, MainParam.getInstance());
         if (image != null) {
-            mLastLoaded = mActListener.getCurrentIndex();
-            addImage(image, mLastLoaded, true);
+            lastLoaded = callback.getCurrentIndex();
+            longImage.addImage(image, lastLoaded, true);
         }
 
         invalidate();
         repaint();
     }
 
-    private void addImage(BufferedImage image, int index, boolean last) {
-        ImageItem ii = new ImageItem();
-        ii.mIndex = index;
-        ii.mImage = image;
-        ii.mViewX = (mViewWidth - ii.mImage.getWidth()) / 2;
-        if (last) {
-            mImageList.addLast(ii);
-        } else {
-            mImageList.addFirst(ii);
-            mViewY += image.getHeight();
-        }
-        mTotalImageHeight += ii.mImage.getHeight();
-        removeImage(!last);
-    }
-
-    private void removeImage(boolean last) {
-        if (mImageList.size() > 5) {
-            ImageItem ii;
-            if (last) {
-                ii = mImageList.removeLast();
-            } else {
-                ii = mImageList.removeFirst();
-                mViewY -= ii.mImage.getHeight();
-            }
-            mTotalImageHeight -= ii.mImage.getHeight();
-            ii.mImage = null;
-            System.gc();
-        }
-    }
-
-    private BufferedImage getCurrentImage() {
-        if (!mImageList.isEmpty()) {
-            int y = 0;
-            Rectangle imageRect = new Rectangle();
-            for (ImageItem ii : mImageList) {
-                imageRect.setBounds(0, y, ii.mImage.getWidth(), ii.mImage.getHeight());
-                if (imageRect.contains(mSelectedRect.x, mSelectedRect.y + mViewY)) {
-                    ocrRect.x = mSelectedRect.x - ii.mViewX;
-                    ocrRect.y = mSelectedRect.y + (mViewY - y);
-                    ocrRect.setSize(mSelectedRect.width, mSelectedRect.height);
-                    return ii.mImage;
-                }
-                y += ii.mImage.getHeight();
-            }
-        }
-        return null;
-    }
+//    private BufferedImage getCurrentImage() {
+//        if (!mImageList.isEmpty()) {
+//            int y = 0;
+//            Rectangle imageRect = new Rectangle();
+//            for (ImageItem ii : mImageList) {
+//                imageRect.setBounds(0, y, ii.image.getWidth(), ii.image.getHeight());
+//                if (imageRect.contains(mSelectedRect.x, mSelectedRect.y + mViewY)) {
+//                    ocrRect.x = mSelectedRect.x - ii.viewX;
+//                    ocrRect.y = mSelectedRect.y + (mViewY - y);
+//                    ocrRect.setSize(mSelectedRect.width, mSelectedRect.height);
+//                    return ii.image;
+//                }
+//                y += ii.image.getHeight();
+//            }
+//        }
+//        return null;
+//    }
 }

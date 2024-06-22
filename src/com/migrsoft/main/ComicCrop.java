@@ -8,15 +8,10 @@ import java.awt.EventQueue;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URL;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Vector;
 import java.util.zip.ZipEntry;
@@ -50,10 +45,8 @@ public class ComicCrop extends JFrame {
 	/**
 	 * 
 	 */
+	@Serial
 	private static final long serialVersionUID = 778619808848682268L;
-	
-	private static final String sMainTitle = "ComicCrop";
-	private static final String sVersion = "1.6.0";
 	
 	private PicEditor mEditor;
 	private PicViewer mViewer;
@@ -65,7 +58,7 @@ public class ComicCrop extends JFrame {
 	private ZipFile mZipFile = null;
 
 	public ComicCrop() {
-		super(sMainTitle);
+		super(StringResources.APP_TITLE);
 		setDefaultCloseOperation(EXIT_ON_CLOSE);
 		
 		createMenu();
@@ -79,9 +72,7 @@ public class ComicCrop extends JFrame {
 		setResizable(false);
 	}
 	
-	private final String menuFile = "文件";
 	private final String menuFileOpen = "打开图片";
-	private final String menuFileOpenComic = "打开漫画";
 	private final String menuFileResize = "窗口大小锁定";
 	private final String menuFileReadTask = "读取任务";
 	private final String menuFileSaveTask = "保存任务";
@@ -134,7 +125,7 @@ public class ComicCrop extends JFrame {
 				if (cmd.equals(menuFileOpen)) {
 					openFile();
 				}
-				else if (cmd.equals(menuFileOpenComic)) {
+				else if (cmd.equals(StringResources.MENU_FILE_OPEN_COMIC)) {
 					openComic();
 				}
 				else if (cmd.equals(menuFileResize)) {
@@ -228,11 +219,12 @@ public class ComicCrop extends JFrame {
 						Desktop.getDesktop().browse(url);
 					}
 					catch (Exception e) {
+						System.out.println(e.getMessage());
 					}
 				}
 				else if (cmd.equals(menuHelpAbout)) {
 					JOptionPane.showMessageDialog(null,
-							"ComicCrop Version " + sVersion + "\n2012-2024 © Woosoft",
+							"ComicCrop Version " + StringResources.VERSION + "\n2012-2024 © Woosoft",
 							"About",
 							JOptionPane.INFORMATION_MESSAGE);
 				}
@@ -253,13 +245,13 @@ public class ComicCrop extends JFrame {
 		
 		////////////////////////////////////////////////////////////
 		
-		JMenu file = new JMenu(menuFile);
+		JMenu file = new JMenu(StringResources.MENU_FILE);
 		menuBar.add(file);
 		
 		JMenuItem file_open = new JMenuItem(menuFileOpen);
 		file_open.addActionListener(menuHandler);
 
-		JMenuItem file_open_comic = new JMenuItem(menuFileOpenComic);
+		JMenuItem file_open_comic = new JMenuItem(StringResources.MENU_FILE_OPEN_COMIC);
 		file_open_comic.addActionListener(menuHandler);
 
 		JMenuItem file_resize = new JMenuItem(menuFileResize);
@@ -495,7 +487,7 @@ public class ComicCrop extends JFrame {
 		});
 
 		mViewer = new PicViewer();
-		mViewer.setActListener(new PicViewer.ActListener() {
+		mViewer.setActListener(new PicViewer.PicViewerCallback() {
 			@Override
 			public ZipFile getZip() {
 				return mZipFile;
@@ -635,7 +627,7 @@ public class ComicCrop extends JFrame {
 	private void updateTitle() {
 		int index = mList.getSelectedIndex() + 1;
 		int total = mList.getTotal();
-		setTitle(sMainTitle + " " + index + " | " + total);
+		setTitle(StringResources.APP_TITLE + " " + index + " | " + total);
 	}
 	
 	private HashMap<String, TaskData> mTaskInfo = null;
