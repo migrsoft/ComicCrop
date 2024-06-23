@@ -1,6 +1,7 @@
 package com.migrsoft.main;
 
 import com.migrsoft.image.PicWorker;
+import com.migrsoft.image.TesserOCR;
 
 import javax.swing.*;
 import java.awt.*;
@@ -19,8 +20,8 @@ public class PicViewer extends JPanel
 
     private Mode currentMode = Mode.View;
 
-    private final int MINI_SIDE = 20;
-    private Rectangle mSelectedRect = new Rectangle();
+    private final SelectBox selectBox = new SelectBox();
+    private ImageItem currentImageItem = null;
 
     @Override
     public void mouseClicked(MouseEvent e) {
@@ -32,11 +33,28 @@ public class PicViewer extends JPanel
     @Override
     public void mousePressed(MouseEvent e) {
         if (e.getButton() == MouseEvent.BUTTON1) {
-            if (currentMode == Mode.Create) {
-                float x = e.getX();
-                float y = e.getY();
-                mSelectedRect.setRect(x, y, MINI_SIDE, MINI_SIDE);
-                repaint();
+            switch (currentMode) {
+                case View:
+                    if (selectBox.contains(e.getX(), e.getY())) {
+                        currentMode = Mode.Edit;
+                    }
+                    break;
+
+                case Create:
+                    selectBox.setTopLeft(e.getX(), e.getY());
+                    currentImageItem = longImage.getSelectedImage(e.getY() + viewPort.y);
+                    if (currentImageItem != null) {
+                        Rectangle range = currentImageItem.getVisibleRectInViewPort(viewPort);
+                        selectBox.setRange(range.x, range.y, range.width, range.height);
+                    }
+                    repaint();
+                    break;
+
+                case Edit:
+                    if (!selectBox.contains(e.getX(), e.getY())) {
+                        currentMode = Mode.View;
+                    }
+                    break;
             }
         }
     }
@@ -59,10 +77,7 @@ public class PicViewer extends JPanel
     @Override
     public void mouseDragged(MouseEvent e) {
         if (currentMode == Mode.Create) {
-            int dx = e.getX() - mSelectedRect.x;
-            int dy = e.getY() - mSelectedRect.y;
-            if (dx >= MINI_SIDE && dy >= MINI_SIDE) {
-                mSelectedRect.setSize(dx, dy);
+            if (selectBox.dragBottomRight(e.getX(), e.getY())) {
                 repaint();
             }
         }
@@ -85,11 +100,9 @@ public class PicViewer extends JPanel
         callback = listener;
     }
 
-    private LongImage longImage = null;
+    private final LongImage longImage = new LongImage();
 
-    private int viewY;
-    private int viewWidth;
-    private int viewHeight;
+    private final Rectangle viewPort = new Rectangle();
 
     private int lastLoaded = -1;
 
@@ -117,7 +130,7 @@ public class PicViewer extends JPanel
             try {
                 BufferedImage image = get();
                 if (image != null) {
-                    viewY += longImage.addImage(image, index, atLast);
+                    viewPort.y += longImage.addImage(image, index, atLast);
                 }
             } catch (Exception e) {
                 System.out.println(e.getMessage());
@@ -165,20 +178,16 @@ public class PicViewer extends JPanel
         mPopMenu.add(menuOcr);
     }
 
-//    private BufferedImage tempImage;
-    private Rectangle ocrRect = new Rectangle();
-
     private void onPopMenuOcr() {
-//        BufferedImage image = getCurrentImage();
-//        assert image != null;
-//        System.out.println(TesserOCR.ocr(image, ocrRect));
+        if (currentImageItem != null && !selectBox.isEmpty()) {
+            Rectangle r = getRectInCurrentImage(selectBox.rect);
+            System.out.println(TesserOCR.ocr(currentImageItem.image, r));
+        }
     }
 
     public void reset() {
-        viewY = 0;
-        if (longImage != null) {
-            longImage.reset();
-        }
+        viewPort.setLocation(0, 0);
+        longImage.reset();
         revalidate();
         repaint();
     }
@@ -188,21 +197,21 @@ public class PicViewer extends JPanel
         if (currentMode == Mode.View && longImage != null) {
             final int scrollAmount = 20;
             int amount = evt.getUnitsToScroll() * scrollAmount;
-            viewY += amount;
-            int tempY = viewY;
-            viewY = Math.max(0, Math.min(viewY, longImage.height - viewHeight));
+            viewPort.y += amount;
+            int y = viewPort.y;
+            viewPort.y = Math.max(0, Math.min(viewPort.y, longImage.height - viewPort.height));
             invalidate();
             repaint();
 
-            if (tempY < 0 || tempY + viewHeight > longImage.height) {
-                int index = (tempY < 0)
+            if (y < 0 || y + viewPort.height > longImage.height) {
+                int index = (y < 0)
                         ? longImage.getIndexAtFirst() - 1
                         : longImage.getIndexAtLast() + 1;
                 String name = callback.getStringByIndex(index);
                 if (lastLoaded != index && !name.isEmpty()) {
 //                    System.out.println("last " + lastLoaded + " index " + index + " viewY " + viewY);
                     lastLoaded = index;
-                    new ImageLoaderWorker(callback.getZip(), name, index, tempY > 0).execute();
+                    new ImageLoaderWorker(callback.getZip(), name, index, y > 0).execute();
                 }
             }
         }
@@ -218,25 +227,27 @@ public class PicViewer extends JPanel
         g2.setPaint(Color.DARK_GRAY);
         g2.fill(area);
 
-        if (longImage != null) {
-            Rectangle viewPort = new Rectangle();
-            viewPort.setBounds(0, viewY, viewWidth, viewHeight);
+        if (longImage.height > 0) {
             longImage.paint(g2, viewPort);
             callback.setCurrentIndex(longImage.getCurrentIndex());
         }
-//
-//            g2.setPaint(Color.RED);
-//            g2.drawRect(mSelectedRect.x, mSelectedRect.y, mSelectedRect.width, mSelectedRect.height);
-//        }
 
-//        if (tempImage != null) {
-//            g2.drawImage(tempImage,
-//                    0, 0,
-//                    ocrRect.width, ocrRect.height,
-//                    ocrRect.x, ocrRect.y,
-//                    ocrRect.x + ocrRect.width, ocrRect.y + ocrRect.height,
-//                    null);
-//        }
+        // 绘制选择框
+        if (!selectBox.rect.isEmpty()) {
+            g2.setPaint(Color.RED);
+            g2.drawRect(selectBox.rect.x, selectBox.rect.y, selectBox.rect.width, selectBox.rect.height);
+            g2.setPaint(Color.BLUE);
+            g2.drawRect(selectBox.range.x, selectBox.range.y, selectBox.range.width, selectBox.range.height);
+        }
+
+        // 显示选择的图片
+        if (currentMode == Mode.Create && currentImageItem != null && !selectBox.isEmpty()) {
+            Rectangle r = getRectInCurrentImage(selectBox.rect);
+            g2.drawImage(currentImageItem.image,
+                    0, 0, selectBox.rect.width, selectBox.rect.height,
+                    r.x, r.y, r.x + selectBox.rect.width, r.y + selectBox.rect.height,
+                    null);
+        }
     }
 
     /*
@@ -245,18 +256,13 @@ public class PicViewer extends JPanel
     public void load(String name) {
         assert callback != null;
 
-        if (longImage == null) {
-            longImage = new LongImage();
-        }
-
 //        System.out.println("load " + callback.getCurrentIndex() + " " + longImage.getCurrentIndex());
         if (callback.getCurrentIndex() == longImage.getCurrentIndex()) {
             return;
         }
 
-        viewY = 0;
-        viewWidth = getWidth();
-        viewHeight = getHeight();
+        viewPort.setLocation(0, 0);
+        viewPort.setSize(getWidth(), getHeight());
 
         BufferedImage image = PicWorker.load(callback.getZip(), name, MainParam.getInstance());
         if (image != null) {
@@ -268,21 +274,11 @@ public class PicViewer extends JPanel
         repaint();
     }
 
-//    private BufferedImage getCurrentImage() {
-//        if (!mImageList.isEmpty()) {
-//            int y = 0;
-//            Rectangle imageRect = new Rectangle();
-//            for (ImageItem ii : mImageList) {
-//                imageRect.setBounds(0, y, ii.image.getWidth(), ii.image.getHeight());
-//                if (imageRect.contains(mSelectedRect.x, mSelectedRect.y + mViewY)) {
-//                    ocrRect.x = mSelectedRect.x - ii.viewX;
-//                    ocrRect.y = mSelectedRect.y + (mViewY - y);
-//                    ocrRect.setSize(mSelectedRect.width, mSelectedRect.height);
-//                    return ii.image;
-//                }
-//                y += ii.image.getHeight();
-//            }
-//        }
-//        return null;
-//    }
+    private Rectangle getRectInCurrentImage(Rectangle rect) {
+        Rectangle r = new Rectangle();
+        r.x = rect.x - longImage.getXInViewPort(currentImageItem, viewPort);
+        r.y = rect.y + viewPort.y - currentImageItem.y;
+        r.setSize(rect.width, rect.height);
+        return r;
+    }
 }

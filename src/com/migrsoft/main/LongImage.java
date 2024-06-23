@@ -44,6 +44,10 @@ public class LongImage {
         return imageList.peekLast().index;
     }
 
+    public int getXInViewPort(ImageItem ii, Rectangle viewPort) {
+        return (viewPort.width - width) / 2 + ii.x;
+    }
+
     // 当图片变化时，视图 Y 的增减量
     private int adjustedY = 0;
 
@@ -108,7 +112,7 @@ public class LongImage {
                     break;
                 }
                 imageRect.setBounds(
-                        (viewPort.width - width) / 2 + ii.x, ii.y,
+                        getXInViewPort(ii, viewPort), ii.y,
                         ii.image.getWidth(), ii.image.getHeight());
                 if (imageRect.intersects(viewPort)) {
                     Rectangle.intersect(imageRect, viewPort, isr);
@@ -137,5 +141,14 @@ public class LongImage {
             g.setPaint(Color.LIGHT_GRAY);
             g.drawString(hintSize, 2, -(int) bounds.getY() + 2);
         }
+    }
+
+    public ImageItem getSelectedImage(int y) {
+        for (ImageItem ii : imageList) {
+            if (y >= ii.y && y < ii.y + ii.image.getHeight()) {
+                return ii;
+            }
+        }
+        return null;
     }
 }

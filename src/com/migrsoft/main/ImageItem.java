@@ -1,12 +1,13 @@
 package com.migrsoft.main;
 
+import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
 
 class ImageItem {
-    /* 图片在列表中的索引值 */
+
+    // 图片在列表中的索引值
     public int index;
-    /* 图片在可视区中的 X */
-    public int viewX;
 
     // 相对于整个拼接图片的 X
     public int x;
@@ -14,4 +15,18 @@ class ImageItem {
     public int y;
 
     public BufferedImage image;
+
+    private final ArrayList<SubtitleItem> subtitle = new ArrayList<>();
+
+    public Rectangle getVisibleRectInViewPort(Rectangle viewPort) {
+        Rectangle imageRect = new Rectangle();
+        imageRect.setBounds((viewPort.width - image.getWidth()) / 2, y, image.getWidth(), image.getHeight());
+        Rectangle isr = new Rectangle();
+        Rectangle.intersect(imageRect, viewPort, isr);
+        if (!isr.isEmpty()) {
+            isr.setLocation(isr.x, isr.y - viewPort.y);
+            isr.setSize(isr.width - 1, isr.height - 1);
+        }
+        return isr;
+    }
 }
