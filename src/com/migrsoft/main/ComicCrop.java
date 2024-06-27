@@ -1,11 +1,6 @@
 package com.migrsoft.main;
 
-import java.awt.BorderLayout;
-import java.awt.Container;
-import java.awt.Desktop;
-import java.awt.Dimension;
-import java.awt.EventQueue;
-import java.awt.Toolkit;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.*;
@@ -762,6 +757,7 @@ public class ComicCrop extends JFrame {
 			taskList.sort(new SortByName());
 			mList.update(taskList);
 			mViewer.reset();
+			mViewer.repaint();
 		}
 	}
 
@@ -1104,11 +1100,23 @@ public class ComicCrop extends JFrame {
 		new Thread(checkin).start();
 	}
 
-	@SuppressWarnings("unused")
+	private static void listAvailableFonts() {
+		GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+
+		// Get all font family names
+		String[] fontNames = ge.getAvailableFontFamilyNames();
+
+		// Print all font family names
+		System.out.println("Available Fonts:");
+		for (String fontName : fontNames) {
+			System.out.println(fontName);
+		}
+	}
+
 	public static void main(String[] args) {
 
-		ImageIO.scanForPlugins();
-		
+//		listAvailableFonts();
+
 		Runnable r = new Runnable() {
 			public void run() {
 				sInstance = new ComicCrop();

@@ -1,5 +1,7 @@
 package com.migrsoft.main;
 
+import org.w3c.dom.css.Rect;
+
 import java.awt.*;
 import java.awt.font.FontRenderContext;
 import java.awt.geom.Rectangle2D;
@@ -48,12 +50,43 @@ public class LongImage {
         return (viewPort.width - width) / 2 + ii.x;
     }
 
+    // 将矩形由视图位标转换成图片坐标
+    public Rectangle rectToImage(Rectangle rect, Rectangle viewPort) {
+        ImageItem ii = getSelectedImage(rect.y + viewPort.y);
+        return rectToImage(ii, rect, viewPort);
+    }
+
+    public Rectangle rectToImage(ImageItem ii, Rectangle rect, Rectangle viewPort) {
+        Rectangle r = new Rectangle(0, 0, 0, 0);
+        if (ii != null) {
+            r.x = rect.x - getXInViewPort(ii, viewPort);
+            r.y = rect.y + viewPort.y - ii.y;
+            r.setSize(rect.width, rect.height);
+        }
+        return r;
+    }
+
+    // 将矩形由图片坐标转换成视图坐标
+    public Rectangle rectToView(Rectangle rect, Rectangle viewPort) {
+        ImageItem ii = getSelectedImage(rect.y);
+        return rectToView(ii, rect, viewPort);
+    }
+
+    public Rectangle rectToView(ImageItem ii, Rectangle rect, Rectangle viewPort) {
+        Rectangle r = new Rectangle(0, 0, 0, 0);
+        if (ii != null) {
+            r.x = rect.x + getXInViewPort(ii, viewPort);
+            r.y = rect.y + ii.y - viewPort.y;
+            r.setSize(rect.width, rect.height);
+        }
+        return r;
+    }
+
     // 当图片变化时，视图 Y 的增减量
     private int adjustedY = 0;
 
     // 在头部或尾部追加图片
     public int addImage(BufferedImage image, int index, boolean last) {
-//        System.out.println("add " + index + " " + last);
         ImageItem ii = new ImageItem();
         ii.index = index;
         ii.image = image;
@@ -93,10 +126,8 @@ public class LongImage {
             ii.x = (width - ii.image.getWidth()) / 2;
             ii.y = y;
             y += ii.image.getHeight();
-//            System.out.println(ii.index + " " + ii.x + " " + ii.y);
         }
         height = y;
-//        System.out.println("layout " + width + " x " + height);
     }
 
     public void paint(Graphics2D g, Rectangle viewPort) {
@@ -105,33 +136,46 @@ public class LongImage {
             String hintSize = "? x ?";
             int dx1, dx2, dy1 = 0, dy2;
             int sx1, sx2, sy1, sy2;
-            Rectangle imageRect = new Rectangle();
+            Rectangle rect = new Rectangle();
             Rectangle isr = new Rectangle();
             for (ImageItem ii : imageList) {
                 if (ii.y >= viewPort.y + viewPort.height) {
                     break;
                 }
-                imageRect.setBounds(
+                rect.setBounds(
                         getXInViewPort(ii, viewPort), ii.y,
                         ii.image.getWidth(), ii.image.getHeight());
-                if (imageRect.intersects(viewPort)) {
-                    Rectangle.intersect(imageRect, viewPort, isr);
+                if (rect.intersects(viewPort)) {
+                    Rectangle.intersect(rect, viewPort, isr);
                     if (first) {
                         first = false;
-                        hintSize = imageRect.width + " x " + imageRect.height;
+                        hintSize = rect.width + " x " + rect.height;
                         currentIndex = ii.index;
                     }
-                    dx1 = imageRect.x;
-                    dx2 = dx1 + imageRect.width;
+
+                    // 绘制图片
+                    dx1 = rect.x;
+                    dx2 = dx1 + rect.width;
                     dy2 = dy1 + isr.height;
                     sx1 = 0;
-                    sx2 = sx1 + imageRect.width;
-                    sy1 = isr.y - imageRect.y;
+                    sx2 = sx1 + rect.width;
+                    sy1 = isr.y - rect.y;
                     sy2 = sy1 + isr.height;
                     g.drawImage(ii.image, dx1, dy1, dx2, dy2, sx1, sy1, sx2, sy2, null);
 //                    g.setPaint(Color.RED);
 //                    g.drawRect(dx1, dy1, (dx2 - dx1), (dy2 - dy1));
                     dy1 += isr.height;
+
+                    // 绘制字幕
+                    for (SubtitleItem si : ii.subtitles) {
+                        rect.setBounds(
+                                getXInViewPort(ii, viewPort) + si.rect.x, ii.y + si.rect.y,
+                                si.rect.width, si.rect.height);
+                        if (rect.intersects(viewPort)) {
+                            Rectangle r = rectToView(ii, si.rect, viewPort);
+                            si.paint(g, r);
+                        }
+                    }
                 }
             }
             // 显示单图尺寸
@@ -150,5 +194,44 @@ public class LongImage {
             }
         }
         return null;
+    }
+
+    public SubtitleItem getSubtitleByPos(int x, int y, Rectangle viewPort) {
+        ImageItem ii = getSelectedImage(y + viewPort.y);
+        if (ii != null) {
+            x = x - getXInViewPort(ii, viewPort);
+            y = y + viewPort.y - ii.y;
+            for (SubtitleItem si : ii.subtitles) {
+                if (si.rect.contains(x, y)) {
+                    return si;
+                }
+            }
+        }
+        return null;
+    }
+
+    public void addSubtitle(ImageItem ii, SubtitleItem nsi, Rectangle viewPort) {
+        nsi.rect = rectToImage(ii, nsi.rect, viewPort);
+        int index = 0;
+        for (SubtitleItem si : ii.subtitles) {
+            if (si.rect == nsi.rect) {
+                ii.subtitles.set(index, nsi);
+                return;
+            }
+            index++;
+        }
+        ii.subtitles.add(nsi);
+    }
+
+    public void removeSubtitle(ImageItem ii, SubtitleItem nsi, Rectangle viewPort) {
+        nsi.rect = rectToImage(ii, nsi.rect, viewPort);
+        int index = 0;
+        for (SubtitleItem si : ii.subtitles) {
+            if (si.rect == nsi.rect) {
+                ii.subtitles.remove(index);
+                return;
+            }
+            index++;
+        }
     }
 }

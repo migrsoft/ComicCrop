@@ -16,6 +16,7 @@ public class PicViewer extends JPanel
         View,
         Create,
         Edit,
+        EditDlg,
     }
 
     private Mode currentMode = Mode.View;
@@ -51,9 +52,13 @@ public class PicViewer extends JPanel
                     break;
 
                 case Edit:
-                    if (!selectBox.contains(e.getX(), e.getY())) {
+                case EditDlg:
+                    if (selectBox.contains(e.getX(), e.getY())) {
+                        currentMode = Mode.Edit;
+                    } else {
                         currentMode = Mode.View;
                     }
+                    repaint();
                     break;
             }
         }
@@ -161,6 +166,9 @@ public class PicViewer extends JPanel
                     case StringResources.MENU_POP_OCR:
                         onPopMenuOcr();
                         break;
+                    case StringResources.MENU_POP_EDIT:
+                        onPopMenuEdit();
+                        break;
                     default:
                 }
             }
@@ -170,26 +178,52 @@ public class PicViewer extends JPanel
         JMenuItem menuCreate = new JMenuItem(StringResources.MENU_POP_CREATE);
         JMenuItem menuDelete = new JMenuItem(StringResources.MENU_POP_DELETE);
         JMenuItem menuOcr = new JMenuItem(StringResources.MENU_POP_OCR);
+        JMenuItem menuEdit = new JMenuItem(StringResources.MENU_POP_EDIT);
         menuCreate.addActionListener(popMenuHandler);
         menuDelete.addActionListener(popMenuHandler);
         menuOcr.addActionListener(popMenuHandler);
+        menuEdit.addActionListener(popMenuHandler);
         mPopMenu.add(menuCreate);
         mPopMenu.add(menuDelete);
         mPopMenu.add(menuOcr);
+        mPopMenu.add(menuEdit);
     }
 
     private void onPopMenuOcr() {
-        if (currentImageItem != null && !selectBox.isEmpty()) {
-            Rectangle r = getRectInCurrentImage(selectBox.rect);
-            System.out.println(TesserOCR.ocr(currentImageItem.image, r));
+        if (currentImageItem != null && selectBox.notEmpty()) {
+            Rectangle r = longImage.rectToImage(currentImageItem, selectBox.rect, viewPort);
+            String text = TesserOCR.ocr(currentImageItem.image, r);
+            text = text.replace("\n", " ");
+            selectBox.originalText = text;
+            repaint();
+        }
+    }
+
+    private void onPopMenuEdit() {
+        if (selectBox.notEmpty()) {
+            currentMode = Mode.EditDlg;
+            repaint();
+            final EditDlg dlg = new EditDlg(ComicCrop.getInstance());
+            dlg.setOriginalText(selectBox.originalText);
+            dlg.setTranslatedText(selectBox.translatedText);
+            dlg.setCallback(new EditDlg.Callback() {
+                @Override
+                public void onSave() {
+                    selectBox.updateOriginalText(dlg.getOriginalText());
+                    selectBox.updateTranslatedText(dlg.getTranslatedText());
+                    currentMode = Mode.View;
+                    repaint();
+                }
+            });
+            dlg.setLocationRelativeTo(ComicCrop.getInstance());
+            dlg.setVisible(true);
         }
     }
 
     public void reset() {
         viewPort.setLocation(0, 0);
+        viewPort.setSize(getWidth(), getHeight());
         longImage.reset();
-        revalidate();
-        repaint();
     }
 
     @Override
@@ -209,7 +243,6 @@ public class PicViewer extends JPanel
                         : longImage.getIndexAtLast() + 1;
                 String name = callback.getStringByIndex(index);
                 if (lastLoaded != index && !name.isEmpty()) {
-//                    System.out.println("last " + lastLoaded + " index " + index + " viewY " + viewY);
                     lastLoaded = index;
                     new ImageLoaderWorker(callback.getZip(), name, index, y > 0).execute();
                 }
@@ -233,16 +266,12 @@ public class PicViewer extends JPanel
         }
 
         // 绘制选择框
-        if (!selectBox.rect.isEmpty()) {
-            g2.setPaint(Color.RED);
-            g2.drawRect(selectBox.rect.x, selectBox.rect.y, selectBox.rect.width, selectBox.rect.height);
-            g2.setPaint(Color.BLUE);
-            g2.drawRect(selectBox.range.x, selectBox.range.y, selectBox.range.width, selectBox.range.height);
-        }
+        selectBox.paint(g, currentMode != Mode.EditDlg);
 
         // 显示选择的图片
-        if (currentMode == Mode.Create && currentImageItem != null && !selectBox.isEmpty()) {
-            Rectangle r = getRectInCurrentImage(selectBox.rect);
+        if ((currentMode == Mode.Create || currentMode == Mode.EditDlg)
+                && currentImageItem != null && selectBox.notEmpty()) {
+            Rectangle r = longImage.rectToImage(currentImageItem, selectBox.rect, viewPort);
             g2.drawImage(currentImageItem.image,
                     0, 0, selectBox.rect.width, selectBox.rect.height,
                     r.x, r.y, r.x + selectBox.rect.width, r.y + selectBox.rect.height,
@@ -256,13 +285,11 @@ public class PicViewer extends JPanel
     public void load(String name) {
         assert callback != null;
 
-//        System.out.println("load " + callback.getCurrentIndex() + " " + longImage.getCurrentIndex());
         if (callback.getCurrentIndex() == longImage.getCurrentIndex()) {
             return;
         }
 
-        viewPort.setLocation(0, 0);
-        viewPort.setSize(getWidth(), getHeight());
+        reset();
 
         BufferedImage image = PicWorker.load(callback.getZip(), name, MainParam.getInstance());
         if (image != null) {
@@ -272,13 +299,5 @@ public class PicViewer extends JPanel
 
         invalidate();
         repaint();
-    }
-
-    private Rectangle getRectInCurrentImage(Rectangle rect) {
-        Rectangle r = new Rectangle();
-        r.x = rect.x - longImage.getXInViewPort(currentImageItem, viewPort);
-        r.y = rect.y + viewPort.y - currentImageItem.y;
-        r.setSize(rect.width, rect.height);
-        return r;
     }
 }

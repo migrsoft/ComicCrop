@@ -16,7 +16,7 @@ class ImageItem {
 
     public BufferedImage image;
 
-    private final ArrayList<SubtitleItem> subtitle = new ArrayList<>();
+    public final ArrayList<SubtitleItem> subtitles = new ArrayList<>();
 
     public Rectangle getVisibleRectInViewPort(Rectangle viewPort) {
         Rectangle imageRect = new Rectangle();
@@ -28,5 +28,9 @@ class ImageItem {
             isr.setSize(isr.width - 1, isr.height - 1);
         }
         return isr;
+    }
+
+    public void addSubtitle(SubtitleItem item) {
+        subtitles.add(item);
     }
 }

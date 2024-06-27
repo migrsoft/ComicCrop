@@ -1,0 +1,12 @@
+<component name="libraryTable">
+  <library name="deepl.api.java" type="repository">
+    <properties maven-id="com.deepl.api:deepl-java:1.4.0" />
+    <CLASSES>
+      <root url="jar://$MAVEN_REPOSITORY$/com/deepl/api/deepl-java/1.4.0/deepl-java-1.4.0.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/annotations/20.1.0/annotations-20.1.0.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/com/google/code/gson/gson/2.10.1/gson-2.10.1.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
