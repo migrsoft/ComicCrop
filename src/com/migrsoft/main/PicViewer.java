@@ -266,7 +266,7 @@ public class PicViewer extends JPanel
         }
 
         // 绘制选择框
-        selectBox.paint(g, currentMode != Mode.EditDlg);
+        selectBox.paint(g);
 
         // 显示选择的图片
         if ((currentMode == Mode.Create || currentMode == Mode.EditDlg)

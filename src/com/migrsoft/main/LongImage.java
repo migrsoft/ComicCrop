@@ -21,7 +21,7 @@ public class LongImage {
     private int currentIndex = -1;
 
     LongImage() {
-        mainFont = new Font(StringResources.FONT_MAIN, Font.BOLD, 20);
+        mainFont = FontManager.getInstance().getFont(StringResources.FONT_MAIN, Font.BOLD, 20);
     }
 
     public void reset() {

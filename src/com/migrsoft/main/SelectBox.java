@@ -74,14 +74,16 @@ public class SelectBox {
         return rect.contains(x, y);
     }
 
-    public void paint(Graphics g, boolean drawText) {
+    public void paint(Graphics g) {
         if (notEmpty()) {
             g.setColor(Color.RED);
             g.drawRect(rect.x-1, rect.y-1, rect.width+1, rect.height+1);
 //            g.setColor(Color.BLUE);
 //            g.drawRect(range.x, range.y, range.width, range.height);
 
-            if (drawText && !originalText.isEmpty()) {
+            if (!translatedText.isEmpty()) {
+                translatedTextFontSize = SubtitleItem.paint(g, translatedText, rect, translatedTextFontSize);
+            } else if (!originalText.isEmpty()) {
                 originalTextFontSize = SubtitleItem.paint(g, originalText, rect, originalTextFontSize);
             }
         }

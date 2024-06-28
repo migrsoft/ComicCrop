@@ -32,10 +32,13 @@ public class EditDlg extends JDialog {
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 
+        Font font = FontManager.getInstance().getFont(StringResources.FONT_MAIN, Font.PLAIN, 16);
+
         // Create the first text area
         originalText = new JTextArea(5, 30);
         originalText.setLineWrap(true);
         originalText.setWrapStyleWord(true);
+        originalText.setFont(font);
         JScrollPane scrollPane1 = new JScrollPane(originalText);
         panel.add(scrollPane1);
 
@@ -43,6 +46,7 @@ public class EditDlg extends JDialog {
         translatedText = new JTextArea(5, 30);
         translatedText.setLineWrap(true);
         translatedText.setWrapStyleWord(true);
+        translatedText.setFont(font);
         JScrollPane scrollPane2 = new JScrollPane(translatedText);
         panel.add(scrollPane2);
 
