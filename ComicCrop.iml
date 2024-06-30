@@ -11,5 +11,6 @@
     <orderEntry type="library" name="webp-imageio-core-0.1.3" level="project" />
     <orderEntry type="library" name="net.sourceforge.tess4j" level="project" />
     <orderEntry type="library" name="deepl.api.java" level="project" />
+    <orderEntry type="library" name="junit.jupiter.engine" level="project" />
   </component>
 </module>

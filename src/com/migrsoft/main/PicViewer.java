@@ -260,6 +260,20 @@ public class PicViewer extends JPanel
         g2.setPaint(Color.DARK_GRAY);
         g2.fill(area);
 
+        Font f = FontManager.getInstance().getFont(StringResources.FONT_MAIN, Font.PLAIN, 12);
+        FontMetrics m = g.getFontMetrics(f);
+        Paragraph p = new Paragraph("这里面有一段中文长句子.", 100, m);
+        p.layout();
+        g.setColor(Color.RED);
+        g.drawRect(0, 0, 100, 100);
+        int lh = m.getHeight();
+        int y = m.getAscent();
+        g.setFont(f);
+        for (String s : p.getLines()) {
+            g.drawString(s, 0, y);
+            y += lh;
+        }
+
         if (longImage.height > 0) {
             longImage.paint(g2, viewPort);
             callback.setCurrentIndex(longImage.getCurrentIndex());
