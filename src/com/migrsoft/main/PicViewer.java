@@ -42,6 +42,7 @@ public class PicViewer extends JPanel
                     break;
 
                 case Create:
+                    selectBox.reset();
                     selectBox.setTopLeft(e.getX(), e.getY());
                     currentImageItem = longImage.getSelectedImage(e.getY() + viewPort.y);
                     if (currentImageItem != null) {
@@ -194,7 +195,7 @@ public class PicViewer extends JPanel
             Rectangle r = longImage.rectToImage(currentImageItem, selectBox.rect, viewPort);
             String text = TesserOCR.ocr(currentImageItem.image, r);
             text = text.replace("\n", " ");
-            selectBox.originalText = text;
+            selectBox.updateOriginalText(text);
             repaint();
         }
     }
@@ -204,8 +205,8 @@ public class PicViewer extends JPanel
             currentMode = Mode.EditDlg;
             repaint();
             final EditDlg dlg = new EditDlg(ComicCrop.getInstance());
-            dlg.setOriginalText(selectBox.originalText);
-            dlg.setTranslatedText(selectBox.translatedText);
+            dlg.setOriginalText(selectBox.getOriginalText());
+            dlg.setTranslatedText(selectBox.getTranslatedText());
             dlg.setCallback(new EditDlg.Callback() {
                 @Override
                 public void onSave() {
@@ -259,20 +260,6 @@ public class PicViewer extends JPanel
         Rectangle area = new Rectangle(0, 0, getWidth(), getHeight());
         g2.setPaint(Color.DARK_GRAY);
         g2.fill(area);
-
-        Font f = FontManager.getInstance().getFont(StringResources.FONT_MAIN, Font.PLAIN, 12);
-        FontMetrics m = g.getFontMetrics(f);
-        Paragraph p = new Paragraph("这里面有一段中文长句子.", 100, m);
-        p.layout();
-        g.setColor(Color.RED);
-        g.drawRect(0, 0, 100, 100);
-        int lh = m.getHeight();
-        int y = m.getAscent();
-        g.setFont(f);
-        for (String s : p.getLines()) {
-            g.drawString(s, 0, y);
-            y += lh;
-        }
 
         if (longImage.height > 0) {
             longImage.paint(g2, viewPort);

@@ -173,7 +173,7 @@ public class LongImage {
                                 si.rect.width, si.rect.height);
                         if (rect.intersects(viewPort)) {
                             Rectangle r = rectToView(ii, si.rect, viewPort);
-                            si.paint(g, r);
+                            si.paint(g, r, true);
                         }
                     }
                 }

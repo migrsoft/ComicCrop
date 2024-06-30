@@ -10,15 +10,17 @@ public class SelectBox {
     public final Rectangle rect;
     public final Rectangle range;
 
-    public String originalText = "";
-    private int originalTextFontSize = -1;
-
-    public String translatedText = "";
-    private int translatedTextFontSize = -1;
+    private SubtitleItem subtitle;
 
     public SelectBox() {
         rect = new Rectangle();
         range = new Rectangle();
+        subtitle = new SubtitleItem();
+    }
+
+    public void reset() {
+        updateOriginalText("");
+        updateTranslatedText("");
     }
 
     public void setTopLeft(int x, int y) {
@@ -33,17 +35,25 @@ public class SelectBox {
     }
 
     public void updateOriginalText(String text) {
-        if (!originalText.equals(text)) {
-            originalText = text;
-            originalTextFontSize = -1;
+        if (!subtitle.originalText.equals(text)) {
+            subtitle.originalText = text;
+            subtitle.originalTextFontSize = -1;
         }
     }
 
     public void updateTranslatedText(String text) {
-        if (!translatedText.equals(text)) {
-            translatedText = text;
-            translatedTextFontSize = -1;
+        if (!subtitle.translatedText.equals(text)) {
+            subtitle.translatedText = text;
+            subtitle.translatedTextFontSize = -1;
         }
+    }
+
+    public String getOriginalText() {
+        return subtitle.originalText;
+    }
+
+    public String getTranslatedText() {
+        return subtitle.translatedText;
     }
 
     public void empty() {
@@ -81,11 +91,7 @@ public class SelectBox {
 //            g.setColor(Color.BLUE);
 //            g.drawRect(range.x, range.y, range.width, range.height);
 
-            if (!translatedText.isEmpty()) {
-                translatedTextFontSize = SubtitleItem.paint(g, translatedText, rect, translatedTextFontSize);
-            } else if (!originalText.isEmpty()) {
-                originalTextFontSize = SubtitleItem.paint(g, originalText, rect, originalTextFontSize);
-            }
+            subtitle.paint(g, rect, true);
         }
     }
 }

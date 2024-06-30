@@ -29,9 +29,24 @@ public class Paragraph {
 
     private final ArrayList<String> lines = new ArrayList<>();
 
+    public Paragraph() {
+    }
+
     public Paragraph(String text, int width, FontMetrics metrics) {
         this.text = text;
         this.width = width;
+        this.metrics = metrics;
+    }
+
+    public void setText(String text) {
+        this.text = text;
+    }
+
+    public void setWidth(int width) {
+        this.width = width;
+    }
+
+    public void setFontMetrics(FontMetrics metrics) {
         this.metrics = metrics;
     }
 
@@ -150,7 +165,7 @@ public class Paragraph {
                     lines.add(text.substring(start, i));
                 }
 
-                while (text.charAt(i) == ' ' && i < text.length()) i++;
+                while (i < text.length() && text.charAt(i) == ' ') i++;
                 if (i == text.length()) return;
 
                 breakPoint = i;
