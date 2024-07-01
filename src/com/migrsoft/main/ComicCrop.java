@@ -24,7 +24,9 @@ import javax.swing.JOptionPane;
 import javax.swing.JRadioButtonMenuItem;
 import javax.swing.filechooser.FileFilter;
 
+import com.migrsoft.image.PicWorkerParam;
 import com.migrsoft.main.ProgressDlg.TaskType;
+import com.sun.tools.javac.Main;
 
 /**
  * @author wuyulun
@@ -41,6 +43,8 @@ public class ComicCrop extends JFrame {
 	 */
 	@Serial
 	private static final long serialVersionUID = 778619808848682268L;
+
+	private final MenuBarInViewMode viewModeMenuBar;
 	
 	private PicEditor mEditor;
 	private PicViewer mViewer;
@@ -54,8 +58,43 @@ public class ComicCrop extends JFrame {
 	public ComicCrop() {
 		super(StringResources.APP_TITLE);
 		setDefaultCloseOperation(EXIT_ON_CLOSE);
+
+		MenuBarInViewMode.Callback viewModeMenuCB = new MenuBarInViewMode.Callback() {
+			@Override
+			public void onFileOpen() {
+				openFile();
+			}
+
+			@Override
+			public void onFileOpenComic() {
+				openComic();
+			}
+
+			@Override
+			public PicWorkerParam.SubtitleSwitch getSubtitleSwitch() {
+				return MainParam.getInstance().getSubtitleSwitch();
+			}
+
+			@Override
+			public void onSubtitleOff() {
+				MainParam.getInstance().setSubtitleSwitch(PicWorkerParam.SubtitleSwitch.Off);
+			}
+
+			@Override
+			public void onSubtitleOrigin() {
+				MainParam.getInstance().setSubtitleSwitch(PicWorkerParam.SubtitleSwitch.Original);
+			}
+
+			@Override
+			public void onSubtitleChinese() {
+				MainParam.getInstance().setSubtitleSwitch(PicWorkerParam.SubtitleSwitch.Chinese);
+			}
+		};
+
+		viewModeMenuBar = new MenuBarInViewMode(viewModeMenuCB);
+		setJMenuBar(viewModeMenuBar.getMenuBar());
 		
-		createMenu();
+//		createMenu();
 		createContent();
 		
 		Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
@@ -66,13 +105,11 @@ public class ComicCrop extends JFrame {
 		setResizable(false);
 	}
 	
-	private final String menuFileOpen = "打开图片";
 	private final String menuFileResize = "窗口大小锁定";
 	private final String menuFileReadTask = "读取任务";
 	private final String menuFileSaveTask = "保存任务";
 	private final String menuFileTest = "测试";
 	
-	private final String menuPic = "图片";
 	private final String menuPicToGray = "转换为灰度图";
 	private final String menuPicForceGray = "强制计算灰阶";
 	private final String menuPicAutoGrayLevel = "自动计算灰阶";
@@ -103,10 +140,12 @@ public class ComicCrop extends JFrame {
 	private final String menuHelpGuide = "使用说明";
 	private final String menuHelpUpdate = "查看更新";
 	private final String menuHelpAbout = "关于";
-	
+
+	private JMenuBar editMenubar;
+
 	private void createMenu() {
-		JMenuBar menuBar = new JMenuBar();
-		setJMenuBar(menuBar);
+		editMenubar = new JMenuBar();
+		setJMenuBar(editMenubar);
 		
 		////////////////////////////////////////////////////////////
 		
@@ -116,7 +155,7 @@ public class ComicCrop extends JFrame {
 			public void actionPerformed(ActionEvent event) {
 				String cmd = event.getActionCommand();
 				
-				if (cmd.equals(menuFileOpen)) {
+				if (cmd.equals(StringResources.MENU_FILE_OPEN)) {
 					openFile();
 				}
 				else if (cmd.equals(StringResources.MENU_FILE_OPEN_COMIC)) {
@@ -240,9 +279,9 @@ public class ComicCrop extends JFrame {
 		////////////////////////////////////////////////////////////
 		
 		JMenu file = new JMenu(StringResources.MENU_FILE);
-		menuBar.add(file);
+		editMenubar.add(file);
 		
-		JMenuItem file_open = new JMenuItem(menuFileOpen);
+		JMenuItem file_open = new JMenuItem(StringResources.MENU_FILE_OPEN);
 		file_open.addActionListener(menuHandler);
 
 		JMenuItem file_open_comic = new JMenuItem(StringResources.MENU_FILE_OPEN_COMIC);
@@ -267,13 +306,11 @@ public class ComicCrop extends JFrame {
 		file.addSeparator();
 		file.add(file_read_task);
 		file.add(file_save_task);
-		
-//		file.add(file_test);
-		
+
 		////////////////////////////////////////////////////////////
 		
-		JMenu pic = new JMenu(menuPic);
-		menuBar.add(pic);
+		JMenu image = new JMenu(StringResources.MENU_IMAGE);
+		editMenubar.add(image);
 		
 		JMenuItem pic_gray = new JMenuItem(menuPicToGray);
 		pic_gray.addActionListener(menuHandler);
@@ -341,26 +378,26 @@ public class ComicCrop extends JFrame {
 		
 		pic_size800.setSelected(true);
 		
-		pic.add(pic_gray);
-		pic.addSeparator();
-		pic.add(pic_forceGray);
-		pic.add(pic_autoGrayLevel);
-		pic.addSeparator();
-		pic.add(pic_formatPng);
-		pic.add(pic_formatJpg);
-		pic.add(pic_formatWebp);
-		pic.addSeparator();
-		pic.add(pic_cropWhite);
-		pic.add(pic_cropBlack);
-		pic.addSeparator();
-		pic.add(pic_size480);
-		pic.add(pic_size600);
-		pic.add(pic_size800);
-		
+		image.add(pic_gray);
+		image.addSeparator();
+		image.add(pic_forceGray);
+		image.add(pic_autoGrayLevel);
+		image.addSeparator();
+		image.add(pic_formatPng);
+		image.add(pic_formatJpg);
+		image.add(pic_formatWebp);
+		image.addSeparator();
+		image.add(pic_cropWhite);
+		image.add(pic_cropBlack);
+		image.addSeparator();
+		image.add(pic_size480);
+		image.add(pic_size600);
+		image.add(pic_size800);
+
 		////////////////////////////////////////////////////////////
 		
 		JMenu task = new JMenu(menuTask);
-		menuBar.add(task);
+		editMenubar.add(task);
 		
 		JMenuItem task_batchSplit = new JMenuItem(menuTaskSplit);
 		task_batchSplit.addActionListener(menuHandler);
@@ -434,8 +471,8 @@ public class ComicCrop extends JFrame {
 		////////////////////////////////////////////////////////////
 		
 		JMenu help = new JMenu(menuHelp);
-		menuBar.add(help);
-		
+		editMenubar.add(help);
+
 		JMenuItem help_manual = new JMenuItem(menuHelpGuide);
 		help_manual.addActionListener(menuHandler);
 		

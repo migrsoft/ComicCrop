@@ -1,6 +1,12 @@
 package com.migrsoft.image;
 
 public class PicWorkerParam {
+
+	public enum SubtitleSwitch {
+		Off,
+		Original,
+		Chinese,
+	}
 	
 	static public final int OUTPUT_FORMAT_PNG = 1;
 	static public final int OUTPUT_FORMAT_JPG = 2;
@@ -9,6 +15,8 @@ public class PicWorkerParam {
 	private int mOutputType;
 	private float mJpegQuality;
 	private boolean mForceGray;
+
+	private SubtitleSwitch subtitleSwitch = SubtitleSwitch.Original;
 	
 	public PicWorkerParam() {
 		mOutputType = OUTPUT_FORMAT_JPG;
@@ -49,5 +57,13 @@ public class PicWorkerParam {
 	
 	public void setForceGray(boolean force) {
 		mForceGray = force;
+	}
+
+	public SubtitleSwitch getSubtitleSwitch() {
+		return subtitleSwitch;
+	}
+
+	public void setSubtitleSwitch(SubtitleSwitch value) {
+		subtitleSwitch = value;
 	}
 }

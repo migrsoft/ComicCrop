@@ -9,7 +9,13 @@ public class StringResources {
     public static final String FONT_COMIC = "Comic Sans MS";
 
     public static final String MENU_FILE = "File";
+    public static final String MENU_FILE_OPEN = "Open Images";
     public static final String MENU_FILE_OPEN_COMIC = "Open Comic";
+
+    public static final String MENU_IMAGE = "Image";
+    public static final String MENU_SUBTITLE_NO = "No Subtitle";
+    public static final String MENU_SUBTITLE_ORIGIN = "Original Subtitles";
+    public static final String MENU_SUBTITLE_CHINESE = "Chinese Subtitles";
 
     public static final String MENU_POP_CREATE = "Create Subtitle";
     public static final String MENU_POP_DELETE = "Delete Subtitle";

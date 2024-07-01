@@ -1,5 +1,7 @@
 package com.migrsoft.main;
 
+import com.migrsoft.image.PicWorkerParam;
+
 import java.awt.*;
 import java.util.Objects;
 
@@ -91,7 +93,10 @@ public class SelectBox {
 //            g.setColor(Color.BLUE);
 //            g.drawRect(range.x, range.y, range.width, range.height);
 
-            subtitle.paint(g, rect, true);
+            if (MainParam.getInstance().getSubtitleSwitch() != PicWorkerParam.SubtitleSwitch.Off) {
+                subtitle.paint(g, rect,
+                        MainParam.getInstance().getSubtitleSwitch() == PicWorkerParam.SubtitleSwitch.Original);
+            }
         }
     }
 }
