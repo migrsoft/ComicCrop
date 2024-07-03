@@ -78,16 +78,19 @@ public class ComicCrop extends JFrame {
 			@Override
 			public void onSubtitleOff() {
 				MainParam.getInstance().setSubtitleSwitch(PicWorkerParam.SubtitleSwitch.Off);
+				repaint();
 			}
 
 			@Override
 			public void onSubtitleOrigin() {
 				MainParam.getInstance().setSubtitleSwitch(PicWorkerParam.SubtitleSwitch.Original);
+				repaint();
 			}
 
 			@Override
 			public void onSubtitleChinese() {
 				MainParam.getInstance().setSubtitleSwitch(PicWorkerParam.SubtitleSwitch.Chinese);
+				repaint();
 			}
 		};
 

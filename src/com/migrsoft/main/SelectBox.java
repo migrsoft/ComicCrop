@@ -3,26 +3,40 @@ package com.migrsoft.main;
 import com.migrsoft.image.PicWorkerParam;
 
 import java.awt.*;
-import java.util.Objects;
 
 public class SelectBox {
 
     public static final int MINI_SIDE = 20;
 
-    public final Rectangle rect;
+    public Rectangle rect;
     public final Rectangle range;
 
     private SubtitleItem subtitle;
 
+    private boolean updated = false;
+
+    private boolean attached = false;
+
     public SelectBox() {
         rect = new Rectangle();
         range = new Rectangle();
-        subtitle = new SubtitleItem();
     }
 
-    public void reset() {
-        updateOriginalText("");
-        updateTranslatedText("");
+    public void initialize() {
+        updated = false;
+        rect.setBounds(0, 0, 0, 0);
+        if (subtitle != null) {
+            if (attached) {
+                subtitle = null;
+                attached = false;
+            } else {
+                updateOriginalText("");
+                updateTranslatedText("");
+            }
+        }
+        if (subtitle == null) {
+            subtitle = new SubtitleItem();
+        }
     }
 
     public void setTopLeft(int x, int y) {
@@ -36,10 +50,16 @@ public class SelectBox {
         range.setBounds(x, y, width, height);
     }
 
+    public void setSubtitle(SubtitleItem subtitle) {
+        this.subtitle = subtitle;
+        this.attached = true;
+    }
+
     public void updateOriginalText(String text) {
         if (!subtitle.originalText.equals(text)) {
             subtitle.originalText = text;
             subtitle.originalTextFontSize = -1;
+            updated = true;
         }
     }
 
@@ -47,6 +67,7 @@ public class SelectBox {
         if (!subtitle.translatedText.equals(text)) {
             subtitle.translatedText = text;
             subtitle.translatedTextFontSize = -1;
+            updated = true;
         }
     }
 
@@ -56,6 +77,17 @@ public class SelectBox {
 
     public String getTranslatedText() {
         return subtitle.translatedText;
+    }
+
+    public boolean isUpdated() {
+        return updated;
+    }
+
+    public SubtitleItem takeSubtitle() {
+        subtitle.rect = rect;
+        SubtitleItem item = subtitle;
+        subtitle = null;
+        return item;
     }
 
     public void empty() {
@@ -93,9 +125,12 @@ public class SelectBox {
 //            g.setColor(Color.BLUE);
 //            g.drawRect(range.x, range.y, range.width, range.height);
 
-            if (MainParam.getInstance().getSubtitleSwitch() != PicWorkerParam.SubtitleSwitch.Off) {
-                subtitle.paint(g, rect,
-                        MainParam.getInstance().getSubtitleSwitch() == PicWorkerParam.SubtitleSwitch.Original);
+            if (subtitle != null) {
+                switch (MainParam.getInstance().getSubtitleSwitch()) {
+                    case Off -> {}
+                    case Original -> subtitle.paintOriginalText(g, rect);
+                    case Chinese -> subtitle.paintTranslatedText(g, rect);
+                }
             }
         }
     }

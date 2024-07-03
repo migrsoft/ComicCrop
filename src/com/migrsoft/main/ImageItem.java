@@ -4,7 +4,7 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 
-class ImageItem {
+public class ImageItem {
 
     // 图片在列表中的索引值
     public int index;

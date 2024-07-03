@@ -34,22 +34,39 @@ public class PicViewer extends JPanel
     @Override
     public void mousePressed(MouseEvent e) {
         if (e.getButton() == MouseEvent.BUTTON1) {
+            boolean repaint = false;
             switch (currentMode) {
                 case View:
                     if (selectBox.contains(e.getX(), e.getY())) {
                         currentMode = Mode.Edit;
+                    } else {
+                        if (selectBox.isUpdated()) {
+                            longImage.addSubtitle(currentImageItem, selectBox.takeSubtitle(), viewPort);
+                        }
+                        if (selectBox.notEmpty()) {
+                            selectBox.initialize();
+                            repaint = true;
+                        }
+                        SubtitleItem si = longImage.getSubtitleByPos(currentImageItem, e.getX(), e.getY(), viewPort);
+                        if (si != null) {
+                            selectBox.rect = longImage.rectToView(currentImageItem, si.rect, viewPort);
+                            selectBox.setSubtitle(si);
+                            currentMode = Mode.Edit;
+                            repaint = true;
+                        }
                     }
                     break;
 
                 case Create:
-                    selectBox.reset();
+                    selectBox.initialize();
                     selectBox.setTopLeft(e.getX(), e.getY());
                     currentImageItem = longImage.getSelectedImage(e.getY() + viewPort.y);
+                    System.out.println("current image: " + currentImageItem.index);
                     if (currentImageItem != null) {
                         Rectangle range = currentImageItem.getVisibleRectInViewPort(viewPort);
                         selectBox.setRange(range.x, range.y, range.width, range.height);
                     }
-                    repaint();
+                    repaint = true;
                     break;
 
                 case Edit:
@@ -59,9 +76,9 @@ public class PicViewer extends JPanel
                     } else {
                         currentMode = Mode.View;
                     }
-                    repaint();
                     break;
             }
+            if (repaint) repaint();
         }
     }
 

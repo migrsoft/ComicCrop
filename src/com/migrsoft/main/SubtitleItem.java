@@ -1,68 +1,60 @@
 package com.migrsoft.main;
 
 import java.awt.*;
-import java.util.ArrayList;
 
 public class SubtitleItem {
 
     public Rectangle rect;
 
-    public String originalText;
-    public String translatedText;
+    public String originalText = "";
+    public String translatedText = "";
 
     public int originalTextFontSize = -1;
     public int translatedTextFontSize = -1;
 
-    private final Paragraph paragraph;
+    private final Paragraph paraOriginal;
+    private final Paragraph paraTranslated;
 
     public SubtitleItem() {
-        originalText = new String();
-        translatedText = new String();
-        paragraph = new Paragraph();
+        rect = new Rectangle();
+        paraOriginal = new Paragraph();
+        paraTranslated = new Paragraph();
     }
 
-    public void paint(Graphics g, Rectangle rect, boolean original) {
-        String text;
-        int fontSize;
-        if (original) {
-            text = originalText;
-            fontSize = originalTextFontSize;
-        } else {
-            text = translatedText;
-            fontSize = translatedTextFontSize;
-        }
-        if (text != null && !text.isEmpty()) {
-            fontSize = paint(g, text, rect, fontSize);
-            if (original) {
-                originalTextFontSize = fontSize;
-            } else {
-                translatedTextFontSize = fontSize;
-            }
+    public void paintOriginalText(Graphics g, Rectangle rect) {
+        if (!originalText.isEmpty()) {
+            paraOriginal.setText(originalText);
+            originalTextFontSize = paint(g, rect, originalTextFontSize, paraOriginal);
         }
     }
 
-    private int paint(Graphics g, String text, Rectangle rect, int fontSize) {
+    public void paintTranslatedText(Graphics g, Rectangle rect) {
+        if (!translatedText.isEmpty()) {
+            paraTranslated.setText(translatedText);
+            translatedTextFontSize = paint(g, rect, translatedTextFontSize, paraTranslated);
+        }
+    }
+
+    private int paint(Graphics g, Rectangle rect, int fontSize, Paragraph paragraph) {
         g.setColor(Color.WHITE);
         g.fillRect(rect.x, rect.y, rect.width, rect.height);
 
         Font font;
         if (fontSize < 0) {
-            paragraph.setText(text);
             paragraph.setWidth(rect.width);
-            font = determineFontSize(g, rect.height);
-//            System.out.println("Adaptive font size: " + font.getSize());
+            font = determineFontSize(g, rect.height, paragraph);
         } else {
             font = FontManager.getInstance().getFont(StringResources.FONT_COMIC, Font.PLAIN, fontSize);
         }
 
         g.setFont(font);
         g.setColor(Color.BLACK);
-        drawLines(g, rect);
+        drawLines(g, rect, paragraph);
 
         return font.getSize();
     }
 
-    private Font determineFontSize(Graphics g, int height) {
+    private Font determineFontSize(Graphics g, int height, Paragraph paragraph) {
         int size = 10;
         Font font;
         FontMetrics metrics;
@@ -81,7 +73,7 @@ public class SubtitleItem {
         return font;
     }
 
-    private void drawLines(Graphics g, Rectangle rect) {
+    private void drawLines(Graphics g, Rectangle rect, Paragraph paragraph) {
         FontMetrics metrics = g.getFontMetrics();
         int lineHeight = metrics.getHeight();
         int startY = rect.y + metrics.getAscent();

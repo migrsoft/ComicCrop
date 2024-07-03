@@ -1,6 +1,6 @@
 package com.migrsoft.main;
 
-import org.w3c.dom.css.Rect;
+import com.migrsoft.image.PicWorkerParam;
 
 import java.awt.*;
 import java.awt.font.FontRenderContext;
@@ -51,32 +51,22 @@ public class LongImage {
     }
 
     // 将矩形由视图位标转换成图片坐标
-    public Rectangle rectToImage(Rectangle rect, Rectangle viewPort) {
-        ImageItem ii = getSelectedImage(rect.y + viewPort.y);
-        return rectToImage(ii, rect, viewPort);
-    }
-
-    public Rectangle rectToImage(ImageItem ii, Rectangle rect, Rectangle viewPort) {
+    public Rectangle rectToImage(ImageItem item, Rectangle rect, Rectangle viewPort) {
         Rectangle r = new Rectangle(0, 0, 0, 0);
-        if (ii != null) {
-            r.x = rect.x - getXInViewPort(ii, viewPort);
-            r.y = rect.y + viewPort.y - ii.y;
+        if (item != null) {
+            r.x = rect.x - getXInViewPort(item, viewPort);
+            r.y = rect.y + viewPort.y - item.y;
             r.setSize(rect.width, rect.height);
         }
         return r;
     }
 
     // 将矩形由图片坐标转换成视图坐标
-    public Rectangle rectToView(Rectangle rect, Rectangle viewPort) {
-        ImageItem ii = getSelectedImage(rect.y);
-        return rectToView(ii, rect, viewPort);
-    }
-
-    public Rectangle rectToView(ImageItem ii, Rectangle rect, Rectangle viewPort) {
+    public Rectangle rectToView(ImageItem item, Rectangle rect, Rectangle viewPort) {
         Rectangle r = new Rectangle(0, 0, 0, 0);
-        if (ii != null) {
-            r.x = rect.x + getXInViewPort(ii, viewPort);
-            r.y = rect.y + ii.y - viewPort.y;
+        if (item != null) {
+            r.x = rect.x + getXInViewPort(item, viewPort);
+            r.y = rect.y + item.y - viewPort.y;
             r.setSize(rect.width, rect.height);
         }
         return r;
@@ -167,13 +157,19 @@ public class LongImage {
                     dy1 += isr.height;
 
                     // 绘制字幕
-                    for (SubtitleItem si : ii.subtitles) {
-                        rect.setBounds(
-                                getXInViewPort(ii, viewPort) + si.rect.x, ii.y + si.rect.y,
-                                si.rect.width, si.rect.height);
-                        if (rect.intersects(viewPort)) {
-                            Rectangle r = rectToView(ii, si.rect, viewPort);
-                            si.paint(g, r, true);
+                    if (MainParam.getInstance().getSubtitleSwitch() != PicWorkerParam.SubtitleSwitch.Off) {
+                        for (SubtitleItem si : ii.subtitles) {
+                            rect.setBounds(
+                                    getXInViewPort(ii, viewPort) + si.rect.x, ii.y + si.rect.y,
+                                    si.rect.width, si.rect.height);
+                            if (rect.intersects(viewPort)) {
+                                Rectangle r = rectToView(ii, si.rect, viewPort);
+                                switch (MainParam.getInstance().getSubtitleSwitch()) {
+                                    case Off -> {}
+                                    case Original -> si.paintOriginalText(g, r);
+                                    case Chinese -> si.paintTranslatedText(g, r);
+                                }
+                            }
                         }
                     }
                 }
@@ -196,13 +192,13 @@ public class LongImage {
         return null;
     }
 
-    public SubtitleItem getSubtitleByPos(int x, int y, Rectangle viewPort) {
-        ImageItem ii = getSelectedImage(y + viewPort.y);
+    public SubtitleItem getSubtitleByPos(ImageItem item, int x, int y, Rectangle viewPort) {
+        ImageItem ii = (item == null) ? getSelectedImage(y + viewPort.y) : item;
         if (ii != null) {
-            x = x - getXInViewPort(ii, viewPort);
-            y = y + viewPort.y - ii.y;
+            int xx = x - getXInViewPort(ii, viewPort);
+            int yy = y + viewPort.y - ii.y;
             for (SubtitleItem si : ii.subtitles) {
-                if (si.rect.contains(x, y)) {
+                if (si.rect.contains(xx, yy)) {
                     return si;
                 }
             }
