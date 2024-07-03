@@ -31,34 +31,38 @@ public class PicViewer extends JPanel
         }
     }
 
+    private void saveSubtitle() {
+        if (selectBox.isUpdated()) {
+            longImage.addSubtitle(currentImageItem, selectBox.takeSubtitle(), viewPort);
+        }
+        selectBox.initialize();
+    }
+
     @Override
     public void mousePressed(MouseEvent e) {
         if (e.getButton() == MouseEvent.BUTTON1) {
             boolean repaint = false;
             switch (currentMode) {
                 case View:
+                case Edit:
                     if (selectBox.contains(e.getX(), e.getY())) {
                         currentMode = Mode.Edit;
                     } else {
-                        if (selectBox.isUpdated()) {
-                            longImage.addSubtitle(currentImageItem, selectBox.takeSubtitle(), viewPort);
-                        }
-                        if (selectBox.notEmpty()) {
-                            selectBox.initialize();
-                            repaint = true;
-                        }
+                        saveSubtitle();
                         SubtitleItem si = longImage.getSubtitleByPos(currentImageItem, e.getX(), e.getY(), viewPort);
-                        if (si != null) {
+                        if (si == null) {
+                            currentMode = Mode.View;
+                        } else {
                             selectBox.rect = longImage.rectToView(currentImageItem, si.rect, viewPort);
                             selectBox.setSubtitle(si);
                             currentMode = Mode.Edit;
-                            repaint = true;
                         }
                     }
+                    repaint = true;
                     break;
 
                 case Create:
-                    selectBox.initialize();
+                    saveSubtitle();
                     selectBox.setTopLeft(e.getX(), e.getY());
                     currentImageItem = longImage.getSelectedImage(e.getY() + viewPort.y);
                     System.out.println("current image: " + currentImageItem.index);
@@ -69,7 +73,6 @@ public class PicViewer extends JPanel
                     repaint = true;
                     break;
 
-                case Edit:
                 case EditDlg:
                     if (selectBox.contains(e.getX(), e.getY())) {
                         currentMode = Mode.Edit;
