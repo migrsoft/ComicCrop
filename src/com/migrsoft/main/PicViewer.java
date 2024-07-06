@@ -115,15 +115,17 @@ public class PicViewer extends JPanel
 
     public interface PicViewerCallback {
         ZipFile getZip();
+        String getPath();
+        String getFileName();
         int getCurrentIndex();
         void setCurrentIndex(int index);
-        String getStringByIndex(int index);
+        String getNameByIndex(int index);
     }
 
-    private PicViewerCallback callback = null;
+    private PicViewerCallback cb;
 
     public void setActListener(PicViewerCallback listener) {
-        callback = listener;
+        cb = listener;
     }
 
     private final LongImage longImage = new LongImage();
@@ -156,7 +158,7 @@ public class PicViewer extends JPanel
             try {
                 BufferedImage image = get();
                 if (image != null) {
-                    viewPort.y += longImage.addImage(image, index, atLast);
+                    viewPort.y += longImage.addImage(image, index, name, atLast);
                 }
             } catch (Exception e) {
                 System.out.println(e.getMessage());
@@ -179,18 +181,10 @@ public class PicViewer extends JPanel
             @Override
             public void actionPerformed(ActionEvent e) {
                 switch (e.getActionCommand()) {
-                    case StringResources.MENU_POP_CREATE:
-                        currentMode = Mode.Create;
-                        break;
-                    case StringResources.MENU_POP_DELETE:
-                        break;
-                    case StringResources.MENU_POP_OCR:
-                        onPopMenuOcr();
-                        break;
-                    case StringResources.MENU_POP_EDIT:
-                        onPopMenuEdit();
-                        break;
-                    default:
+                    case StringResources.MENU_POP_CREATE -> { currentMode = Mode.Create; }
+                    case StringResources.MENU_POP_DELETE -> onPopMenuDelete();
+                    case StringResources.MENU_POP_OCR -> onPopMenuOcr();
+                    case StringResources.MENU_POP_EDIT -> onPopMenuEdit();
                 }
             }
         };
@@ -208,6 +202,10 @@ public class PicViewer extends JPanel
         mPopMenu.add(menuDelete);
         mPopMenu.add(menuOcr);
         mPopMenu.add(menuEdit);
+    }
+
+    private void onPopMenuDelete() {
+
     }
 
     private void onPopMenuOcr() {
@@ -262,10 +260,10 @@ public class PicViewer extends JPanel
                 int index = (y < 0)
                         ? longImage.getIndexAtFirst() - 1
                         : longImage.getIndexAtLast() + 1;
-                String name = callback.getStringByIndex(index);
+                String name = cb.getNameByIndex(index);
                 if (lastLoaded != index && !name.isEmpty()) {
                     lastLoaded = index;
-                    new ImageLoaderWorker(callback.getZip(), name, index, y > 0).execute();
+                    new ImageLoaderWorker(cb.getZip(), name, index, y > 0).execute();
                 }
             }
         }
@@ -283,7 +281,7 @@ public class PicViewer extends JPanel
 
         if (longImage.height > 0) {
             longImage.paint(g2, viewPort);
-            callback.setCurrentIndex(longImage.getCurrentIndex());
+            cb.setCurrentIndex(longImage.getCurrentIndex());
         }
 
         // 绘制选择框
@@ -304,21 +302,31 @@ public class PicViewer extends JPanel
      * 打开指定的图片
      */
     public void load(String name) {
-        assert callback != null;
+        assert cb != null;
 
-        if (callback.getCurrentIndex() == longImage.getCurrentIndex()) {
+        if (cb.getCurrentIndex() == longImage.getCurrentIndex()) {
             return;
         }
 
         reset();
 
-        BufferedImage image = PicWorker.load(callback.getZip(), name, MainParam.getInstance());
+        BufferedImage image = PicWorker.load(cb.getZip(), name, MainParam.getInstance());
         if (image != null) {
-            lastLoaded = callback.getCurrentIndex();
-            longImage.addImage(image, lastLoaded, true);
+            lastLoaded = cb.getCurrentIndex();
+            longImage.addImage(image, lastLoaded, cb.getNameByIndex(lastLoaded),true);
         }
 
         invalidate();
         repaint();
+    }
+
+    public void saveSubtitles() {
+        String path = cb.getPath() + cb.getFileName();
+        longImage.saveSubtitles(path);
+    }
+
+    public void loadSubtitles() {
+        String path = cb.getPath() + cb.getFileName();
+        longImage.loadSubtitles(path);
     }
 }

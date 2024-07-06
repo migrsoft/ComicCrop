@@ -26,7 +26,6 @@ import javax.swing.filechooser.FileFilter;
 
 import com.migrsoft.image.PicWorkerParam;
 import com.migrsoft.main.ProgressDlg.TaskType;
-import com.sun.tools.javac.Main;
 
 /**
  * @author wuyulun
@@ -44,21 +43,36 @@ public class ComicCrop extends JFrame {
 	@Serial
 	private static final long serialVersionUID = 778619808848682268L;
 
-	private final MenuBarInViewMode viewModeMenuBar;
+	private MenuBarInViewMode viewModeMenuBar;
 	
 	private PicEditor mEditor;
-	private PicViewer mViewer;
-	private PicList mList;
+	private PicViewer viewer;
+	private PicList list;
 	private Dashboard mBoard;
 	
-	private String mLastPath;
+	private String lastPath;
+	private String fileName;
 
-	private ZipFile mZipFile = null;
+	private ZipFile zipFile = null;
 
 	public ComicCrop() {
 		super(StringResources.APP_TITLE);
 		setDefaultCloseOperation(EXIT_ON_CLOSE);
 
+		createViewModeMenu();
+		setJMenuBar(viewModeMenuBar.getMenuBar());
+		
+		createContent();
+		
+		Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
+		
+		setSize((int)(screen.getWidth() * 0.9f), (int)(screen.getHeight() * 0.9f));
+		setLocation((int)(screen.getWidth() - getWidth()) / 2, (int)(screen.getHeight() - getHeight()) / 2);
+		setVisible(true);
+		setResizable(false);
+	}
+
+	private void createViewModeMenu() {
 		MenuBarInViewMode.Callback viewModeMenuCB = new MenuBarInViewMode.Callback() {
 			@Override
 			public void onFileOpen() {
@@ -68,6 +82,11 @@ public class ComicCrop extends JFrame {
 			@Override
 			public void onFileOpenComic() {
 				openComic();
+			}
+
+			@Override
+			public void onFileSaveSubtitle() {
+				viewer.saveSubtitles();
 			}
 
 			@Override
@@ -95,17 +114,6 @@ public class ComicCrop extends JFrame {
 		};
 
 		viewModeMenuBar = new MenuBarInViewMode(viewModeMenuCB);
-		setJMenuBar(viewModeMenuBar.getMenuBar());
-		
-//		createMenu();
-		createContent();
-		
-		Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
-		
-		setSize((int)(screen.getWidth() * 0.9f), (int)(screen.getHeight() * 0.9f));
-		setLocation((int)(screen.getWidth() - getWidth()) / 2, (int)(screen.getHeight() - getHeight()) / 2);
-		setVisible(true);
-		setResizable(false);
 	}
 	
 	private final String menuFileResize = "窗口大小锁定";
@@ -498,12 +506,12 @@ public class ComicCrop extends JFrame {
 			
 			@Override
 			public void loadPrevItem() {
-				mList.loadPrevItem();
+				list.loadPrevItem();
 			}
 			
 			@Override
 			public void loadNextItem() {
-				mList.loadNextItem();
+				list.loadNextItem();
 			}
 
 			@Override
@@ -520,40 +528,50 @@ public class ComicCrop extends JFrame {
 			}
 		});
 
-		mViewer = new PicViewer();
-		mViewer.setActListener(new PicViewer.PicViewerCallback() {
+		viewer = new PicViewer();
+		viewer.setActListener(new PicViewer.PicViewerCallback() {
 			@Override
 			public ZipFile getZip() {
-				return mZipFile;
+				return zipFile;
+			}
+
+			@Override
+			public String getPath() {
+				return lastPath;
+			}
+
+			@Override
+			public String getFileName() {
+				return fileName;
 			}
 
 			@Override
 			public int getCurrentIndex() {
-				return mList.getSelectedIndex();
+				return list.getSelectedIndex();
 			}
 
 			@Override
 			public void setCurrentIndex(int index) {
-				mList.setSelectedIndex(index);
+				list.setSelectedIndex(index);
 				updateTitle();
 			}
 
 			@Override
-			public String getStringByIndex(int index) {
-				return mList.getStringByIndex(index);
+			public String getNameByIndex(int index) {
+				return list.getStringByIndex(index);
 			}
 		});
 		
-		mList = new PicList();
-		mList.setActListener(new PicList.ActListener() {
+		list = new PicList();
+		list.setActListener(new PicList.ActListener() {
 			
 			@Override
 			public void onSelect(String name) {
 				updateTitle();
-				if (mZipFile != null) {
-					mViewer.load(name);
+				if (zipFile != null) {
+					viewer.load(name);
 				} else {
-					mEditor.load(mLastPath + name);
+					mEditor.load(lastPath + name);
 				}
 			}
 
@@ -561,7 +579,7 @@ public class ComicCrop extends JFrame {
 			public void onDelete(Vector<String> names) {
 				updateTitle();
 				for (String n : names) {
-					File f = new File(mLastPath + n);
+					File f = new File(lastPath + n);
 					f.delete();
 				}
 				resetEditor();
@@ -654,23 +672,23 @@ public class ComicCrop extends JFrame {
 		
 		Container contentPane = getContentPane();
 		contentPane.add(mEditor, BorderLayout.CENTER);
-		contentPane.add(mList.getPane(), BorderLayout.WEST);
+		contentPane.add(list.getPane(), BorderLayout.WEST);
 		contentPane.add(mBoard, BorderLayout.EAST);
 	}
 	
 	private void updateTitle() {
-		int index = mList.getSelectedIndex() + 1;
-		int total = mList.getTotal();
+		int index = list.getSelectedIndex() + 1;
+		int total = list.getTotal();
 		setTitle(StringResources.APP_TITLE + " " + index + " | " + total);
 	}
 	
-	private HashMap<String, TaskData> mTaskInfo = null;
+	private HashMap<String, TaskData> taskInfo = null;
 
 	private void closeZipFile() {
 		try {
-			if (mZipFile != null) {
-				mZipFile.close();
-				mZipFile = null;
+			if (zipFile != null) {
+				zipFile.close();
+				zipFile = null;
 			}
 		} catch (Exception e) {
 			System.out.println(e.getMessage());
@@ -682,9 +700,9 @@ public class ComicCrop extends JFrame {
 		if (viewMode) {
 			container.remove(mEditor);
 			container.remove(mBoard);
-			container.add(mViewer, BorderLayout.CENTER);
+			container.add(viewer, BorderLayout.CENTER);
 		} else { // to edit mode
-			container.remove(mViewer);
+			container.remove(viewer);
 			container.add(mEditor, BorderLayout.CENTER);
 			container.add(mBoard, BorderLayout.EAST);
 		}
@@ -713,8 +731,8 @@ public class ComicCrop extends JFrame {
 			
 		});
 		dlg.setMultiSelectionEnabled(true);
-		if (mLastPath != null) {
-			dlg.setCurrentDirectory(new File(mLastPath));
+		if (lastPath != null) {
+			dlg.setCurrentDirectory(new File(lastPath));
 		} else {
 			String currentPath = System.getProperty("user.dir");
 			dlg.setCurrentDirectory(new File(currentPath));
@@ -728,16 +746,16 @@ public class ComicCrop extends JFrame {
 			int pathLen = fl[0].getPath().length();
 			int nameLen = fl[0].getName().length();
 			
-			mLastPath = fl[0].getPath().substring(0, pathLen - nameLen);
+			lastPath = fl[0].getPath().substring(0, pathLen - nameLen);
 			Vector<String> taskList = new Vector<String>();
-			mTaskInfo = new HashMap<String, TaskData>();
+			taskInfo = new HashMap<String, TaskData>();
 			
 			for (File f : fl) {
 				taskList.add(f.getName());
 			}
 
 			taskList.sort(new SortByName());
-			mList.update(taskList);
+			list.update(taskList);
 
 			resetEditor();
 		}
@@ -756,13 +774,13 @@ public class ComicCrop extends JFrame {
 
 			@Override
 			public String getDescription() {
-				return "漫画文件";
+				return StringResources.STR_COMIC_FILES;
 			}
 
 		});
 		dlg.setMultiSelectionEnabled(false);
-		if (mLastPath != null) {
-			dlg.setCurrentDirectory(new File(mLastPath));
+		if (lastPath != null) {
+			dlg.setCurrentDirectory(new File(lastPath));
 		} else {
 			String currentPath = System.getProperty("user.dir");
 			dlg.setCurrentDirectory(new File(currentPath));
@@ -776,9 +794,15 @@ public class ComicCrop extends JFrame {
 			int pathLen = fl.getPath().length();
 			int nameLen = fl.getName().length();
 
-			mLastPath = fl.getPath().substring(0, pathLen - nameLen);
+			lastPath = fl.getPath().substring(0, pathLen - nameLen);
+			fileName = fl.getName();
+			int dotIndex = fileName.lastIndexOf('.');
+			if (dotIndex > 0) {
+				fileName = fileName.substring(0, dotIndex);
+			}
+
 			Vector<String> taskList = new Vector<String>();
-			mTaskInfo = new HashMap<String, TaskData>();
+			taskInfo = new HashMap<String, TaskData>();
 
 			try {
 				ZipInputStream zis = new ZipInputStream(new FileInputStream(fl));
@@ -788,15 +812,18 @@ public class ComicCrop extends JFrame {
 					zis.closeEntry();
 				}
 
-				mZipFile = new ZipFile(fl.getPath());
+				zipFile = new ZipFile(fl.getPath());
 			} catch (Exception e) {
 				System.out.println(e.getMessage());
 			}
 
 			taskList.sort(new SortByName());
-			mList.update(taskList);
-			mViewer.reset();
-			mViewer.repaint();
+			list.update(taskList);
+
+			viewer.loadSubtitles();
+
+			viewer.reset();
+			viewer.repaint();
 		}
 	}
 
@@ -805,9 +832,9 @@ public class ComicCrop extends JFrame {
 		File p = new File(path);
 		String[] all = p.list();
 
-		mLastPath = path;
+		lastPath = path;
 		Vector<String> taskList = new Vector<String>();
-		mTaskInfo = new HashMap<String, TaskData>();
+		taskInfo = new HashMap<String, TaskData>();
 		
 		String ext = MainParam.getInstance().getOutputExtName();
         assert all != null;
@@ -821,7 +848,7 @@ public class ComicCrop extends JFrame {
 		}
 		
 		taskList.sort(new SortByName());
-		mList.update(taskList);
+		list.update(taskList);
 		
 		resetEditor();
 		
@@ -849,7 +876,7 @@ public class ComicCrop extends JFrame {
 			Object tasks = os.readObject();
 			os.close();
 			if (tasks instanceof HashMap<?, ?>) {
-				mTaskInfo = (HashMap<String, TaskData>)tasks;
+				taskInfo = (HashMap<String, TaskData>)tasks;
 				mEditor.reload();
 			}
 		} catch (Exception e) {
@@ -858,7 +885,7 @@ public class ComicCrop extends JFrame {
 	}
 	
 	private void saveTasks() {
-		if (mTaskInfo == null)
+		if (taskInfo == null)
 			return;
 		
 		if (JOptionPane.showConfirmDialog(
@@ -870,7 +897,7 @@ public class ComicCrop extends JFrame {
 		try {
 			FileOutputStream fs = new FileOutputStream(TASK_FILE_NAME);
 			ObjectOutputStream os = new ObjectOutputStream(fs);
-			os.writeObject(mTaskInfo);
+			os.writeObject(taskInfo);
 			os.close();
 		} catch (Exception e) {
 			System.out.println(e.getMessage());
@@ -913,27 +940,27 @@ public class ComicCrop extends JFrame {
 	}
 	
 	private void batchSplitWork() {
-		Vector<String> taskList = mList.getList();
+		Vector<String> taskList = list.getList();
 		if (!taskList.isEmpty()) {
 			mEditor.saveTaskData();
 			
-			clearTempDir(mLastPath + mEditor.getSaveDir());
+			clearTempDir(lastPath + mEditor.getSaveDir());
 			
 			ProgressDlg dlg = new ProgressDlg(this);
 			
 			if (useMultiThreads(taskList.size())) {
-				dlg.arrangeWork(taskList, mTaskInfo, TaskType.TASK_SPLIT,
-						mLastPath, mEditor.getSaveDir(),
+				dlg.arrangeWork(taskList, taskInfo, TaskType.TASK_SPLIT,
+						lastPath, mEditor.getSaveDir(),
 						mEditor.isHorizonalSplit(), mEditor.isLeftToRight(), mEditor.getSplitNum(),
 						0, 0);
 			}
 			else {
 				BatchTask batch = new BatchTask();
-				batch.setTask(taskList, mTaskInfo);
+				batch.setTask(taskList, taskInfo);
 				
 				dlg.setMax(taskList.size());
 				dlg.setBatchTask(batch, TaskType.TASK_SPLIT,
-						mLastPath, mEditor.getSaveDir(),
+						lastPath, mEditor.getSaveDir(),
 						mEditor.isHorizonalSplit(), mEditor.isLeftToRight(), mEditor.getSplitNum(),
 						0, 0);
 			}
@@ -944,11 +971,11 @@ public class ComicCrop extends JFrame {
 	}
 
 	private void renameAndUpdateList(Vector<RenameThem.Item> result) {
-		Vector<String> newList = mList.getList();
+		Vector<String> newList = list.getList();
 		for (int i=0, j=0; i < result.size(); i++) {
 			RenameThem.Item rti = result.get(i);
-			File f1 = new File(mLastPath + rti.getOriginName());
-			File f2 = new File(mLastPath + rti.getNewName());
+			File f1 = new File(lastPath + rti.getOriginName());
+			File f2 = new File(lastPath + rti.getNewName());
 			if (f1.renameTo(f2)) {
 				for (; j < newList.size(); j++) {
 					String item = newList.get(j);
@@ -960,13 +987,13 @@ public class ComicCrop extends JFrame {
 				}
 			}
 		}
-		mList.update(newList);
+		list.update(newList);
 	}
 	
 	private void batchRenameWork() {
-		Vector<String> list = mList.getListSelected();
+		Vector<String> list = this.list.getListSelected();
 		if (list.isEmpty()) {
-			list = mList.getList();
+			list = this.list.getList();
 		}
 		if (!list.isEmpty()) {
 			if (JOptionPane.showConfirmDialog(
@@ -985,13 +1012,13 @@ public class ComicCrop extends JFrame {
 	}
 
 	private void batchRenamePlusWork() {
-		Vector<String> list = mList.getListSelected();
+		Vector<String> list = this.list.getListSelected();
 		if (list.isEmpty()) {
-			list = mList.getList();
+			list = this.list.getList();
 		}
 		if (!list.isEmpty()) {
 			final RenamePlusDlg dlg = new RenamePlusDlg();
-			dlg.setData(list, mLastPath);
+			dlg.setData(list, lastPath);
 			dlg.setMyActionListener(new RenamePlusDlg.MyActionListener() {
 				@Override
 				public void onRename() {
@@ -1004,7 +1031,7 @@ public class ComicCrop extends JFrame {
 	}
 	
 	private void batchCropWork() {
-		Vector<String> taskList = mList.getList();
+		Vector<String> taskList = list.getList();
 		if (!taskList.isEmpty()) {
 			mEditor.saveTaskData();
 			
@@ -1013,16 +1040,16 @@ public class ComicCrop extends JFrame {
 			int maxh = MainParam.getInstance().getMaxHeight();
 
 			if (useMultiThreads(taskList.size())) {
-				dlg.arrangeWork(taskList, mTaskInfo, TaskType.TASK_CROP,
-						mLastPath, null, false, false, 0, maxw, maxh);
+				dlg.arrangeWork(taskList, taskInfo, TaskType.TASK_CROP,
+						lastPath, null, false, false, 0, maxw, maxh);
 			}
 			else {
 				BatchTask batch = new BatchTask();
-				batch.setTask(taskList, mTaskInfo);
+				batch.setTask(taskList, taskInfo);
 	
 				dlg.setMax(taskList.size());
 				dlg.setBatchTask(batch, TaskType.TASK_CROP,
-						mLastPath, null, false, false, 0, maxw, maxh);
+						lastPath, null, false, false, 0, maxw, maxh);
 			}
 			
 			dlg.initGui();
@@ -1031,7 +1058,7 @@ public class ComicCrop extends JFrame {
 	}
 	
 	private void batchCropAndScaleWork() {
-		Vector<String> taskList = mList.getList();
+		Vector<String> taskList = list.getList();
 		if (!taskList.isEmpty()) {
 			mEditor.saveTaskData();
 			
@@ -1040,16 +1067,16 @@ public class ComicCrop extends JFrame {
 			int maxh = MainParam.getInstance().getMaxHeight();
 
 			if (useMultiThreads(taskList.size())) {
-				dlg.arrangeWork(taskList, mTaskInfo, TaskType.TASK_CROP_SCALE,
-						mLastPath, null, false, false, 0, maxw, maxh);
+				dlg.arrangeWork(taskList, taskInfo, TaskType.TASK_CROP_SCALE,
+						lastPath, null, false, false, 0, maxw, maxh);
 			}
 			else {
 				BatchTask batch = new BatchTask();
-				batch.setTask(taskList, mTaskInfo);
+				batch.setTask(taskList, taskInfo);
 	
 				dlg.setMax(taskList.size());
 				dlg.setBatchTask(batch, TaskType.TASK_CROP_SCALE,
-						mLastPath, null, false, false, 0, maxw, maxh);
+						lastPath, null, false, false, 0, maxw, maxh);
 			}
 			
 			dlg.initGui();
@@ -1058,7 +1085,7 @@ public class ComicCrop extends JFrame {
 	}
 	
 	private void batchCropAndScaleWidthWork() {
-		Vector<String> taskList = mList.getList();
+		Vector<String> taskList = list.getList();
 		if (!taskList.isEmpty()) {
 			mEditor.saveTaskData();
 			
@@ -1067,16 +1094,16 @@ public class ComicCrop extends JFrame {
 			int maxh = MainParam.getInstance().getMaxHeight();
 
 			if (useMultiThreads(taskList.size())) {
-				dlg.arrangeWork(taskList, mTaskInfo, TaskType.TASK_CROP_SCALE_WIDTH,
-						mLastPath, null, false, false, 0, maxw, maxh);
+				dlg.arrangeWork(taskList, taskInfo, TaskType.TASK_CROP_SCALE_WIDTH,
+						lastPath, null, false, false, 0, maxw, maxh);
 			}
 			else {
 				BatchTask batch = new BatchTask();
-				batch.setTask(taskList, mTaskInfo);
+				batch.setTask(taskList, taskInfo);
 	
 				dlg.setMax(taskList.size());
 				dlg.setBatchTask(batch, TaskType.TASK_CROP_SCALE_WIDTH,
-						mLastPath, null, false, false, 0, maxw, maxh);
+						lastPath, null, false, false, 0, maxw, maxh);
 			}
 			
 			dlg.initGui();
@@ -1086,23 +1113,23 @@ public class ComicCrop extends JFrame {
 	
 	public TaskData loadTaskData(String path) {
 		String name = getNameFromPath(path);
-		if (mTaskInfo.containsKey(name))
-			return mTaskInfo.get(name);
+		if (taskInfo.containsKey(name))
+			return taskInfo.get(name);
 		return null;
 	}
 	
 	public void saveTaskData(String path, TaskData data) {
 		String name = getNameFromPath(path);
-        mTaskInfo.remove(name);
-		mTaskInfo.put(name, data);
+        taskInfo.remove(name);
+		taskInfo.put(name, data);
 	}
 	
 	private String getNameFromPath(String path) {
-		return path.substring(mLastPath.length());
+		return path.substring(lastPath.length());
 	}
 	
 	public void clearTaskInfo() {
-		mTaskInfo.clear();
+		taskInfo.clear();
 	}
 	
 	public void resetEditor() {

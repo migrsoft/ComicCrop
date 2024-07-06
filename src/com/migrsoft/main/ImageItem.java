@@ -2,12 +2,12 @@ package com.migrsoft.main;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.util.ArrayList;
 
 public class ImageItem {
 
     // 图片在列表中的索引值
     public int index;
+    public String name;
 
     // 相对于整个拼接图片的 X
     public int x;
@@ -15,8 +15,6 @@ public class ImageItem {
     public int y;
 
     public BufferedImage image;
-
-    public final ArrayList<SubtitleItem> subtitles = new ArrayList<>();
 
     public Rectangle getVisibleRectInViewPort(Rectangle viewPort) {
         Rectangle imageRect = new Rectangle();
@@ -28,9 +26,5 @@ public class ImageItem {
             isr.setSize(isr.width - 1, isr.height - 1);
         }
         return isr;
-    }
-
-    public void addSubtitle(SubtitleItem item) {
-        subtitles.add(item);
     }
 }

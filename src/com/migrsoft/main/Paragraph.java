@@ -54,6 +54,10 @@ public class Paragraph {
         return lines;
     }
 
+    public boolean isEmpty() {
+        return lines.isEmpty();
+    }
+
     private Type getWordType(int index) {
         if (index < text.length()) {
             String punctBegin = "\"({[“‘《（〈〔「『【〖［";

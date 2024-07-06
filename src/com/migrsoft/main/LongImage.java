@@ -20,8 +20,11 @@ public class LongImage {
 
     private int currentIndex = -1;
 
+    private final SubtitleManager subtitleManager;
+
     LongImage() {
         mainFont = FontManager.getInstance().getFont(StringResources.FONT_MAIN, Font.BOLD, 20);
+        subtitleManager = new SubtitleManager();
     }
 
     public void reset() {
@@ -76,10 +79,11 @@ public class LongImage {
     private int adjustedY = 0;
 
     // 在头部或尾部追加图片
-    public int addImage(BufferedImage image, int index, boolean last) {
+    public int addImage(BufferedImage image, int index, String name, boolean last) {
         ImageItem ii = new ImageItem();
-        ii.index = index;
         ii.image = image;
+        ii.index = index;
+        ii.name = name;
         if (last) {
             imageList.addLast(ii);
         } else {
@@ -158,7 +162,8 @@ public class LongImage {
 
                     // 绘制字幕
                     if (MainParam.getInstance().getSubtitleSwitch() != PicWorkerParam.SubtitleSwitch.Off) {
-                        for (SubtitleItem si : ii.subtitles) {
+                        java.util.List<SubtitleItem> subtitles = subtitleManager.getListByName(ii.name);
+                        for (SubtitleItem si : subtitles) {
                             rect.setBounds(
                                     getXInViewPort(ii, viewPort) + si.rect.x, ii.y + si.rect.y,
                                     si.rect.width, si.rect.height);
@@ -195,39 +200,28 @@ public class LongImage {
     public SubtitleItem getSubtitleByPos(ImageItem item, int x, int y, Rectangle viewPort) {
         ImageItem ii = (item == null) ? getSelectedImage(y + viewPort.y) : item;
         if (ii != null) {
-            int xx = x - getXInViewPort(ii, viewPort);
-            int yy = y + viewPort.y - ii.y;
-            for (SubtitleItem si : ii.subtitles) {
-                if (si.rect.contains(xx, yy)) {
-                    return si;
-                }
-            }
+            int imageX = x - getXInViewPort(ii, viewPort);
+            int imageY = y + viewPort.y - ii.y;
+            return subtitleManager.getSubtitleByPos(ii.name, imageX, imageY);
         }
         return null;
     }
 
     public void addSubtitle(ImageItem ii, SubtitleItem nsi, Rectangle viewPort) {
         nsi.rect = rectToImage(ii, nsi.rect, viewPort);
-        int index = 0;
-        for (SubtitleItem si : ii.subtitles) {
-            if (si.rect == nsi.rect) {
-                ii.subtitles.set(index, nsi);
-                return;
-            }
-            index++;
-        }
-        ii.subtitles.add(nsi);
+        subtitleManager.addSubtitle(ii.name, nsi);
     }
 
     public void removeSubtitle(ImageItem ii, SubtitleItem nsi, Rectangle viewPort) {
         nsi.rect = rectToImage(ii, nsi.rect, viewPort);
-        int index = 0;
-        for (SubtitleItem si : ii.subtitles) {
-            if (si.rect == nsi.rect) {
-                ii.subtitles.remove(index);
-                return;
-            }
-            index++;
-        }
+        subtitleManager.removeSubtitle(ii.name, nsi);
+    }
+
+    public void saveSubtitles(String path) {
+        subtitleManager.save(path + StringResources.PARAM_SUBTITLE_EXT_NAME);
+    }
+
+    public void loadSubtitles(String path) {
+        subtitleManager.load(path + StringResources.PARAM_SUBTITLE_EXT_NAME);
     }
 }

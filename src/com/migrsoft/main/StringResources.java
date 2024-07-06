@@ -11,6 +11,7 @@ public class StringResources {
     public static final String MENU_FILE = "File";
     public static final String MENU_FILE_OPEN = "Open Images";
     public static final String MENU_FILE_OPEN_COMIC = "Open Comic";
+    public static final String MENU_FILE_SAVE_SUBTITLE = "Save Subtitles";
 
     public static final String MENU_IMAGE = "Image";
     public static final String MENU_SUBTITLE_NO = "No Subtitle";
@@ -25,4 +26,8 @@ public class StringResources {
     public static final String BUTTON_TRANSLATE = "Translate";
     public static final String BUTTON_SAVE = "Save";
     public static final String BUTTON_CANCEL = "Cancel";
+
+    public static final String STR_COMIC_FILES = "Comic Files";
+
+    public static final String PARAM_SUBTITLE_EXT_NAME = ".st";
 }

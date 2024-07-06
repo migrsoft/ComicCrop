@@ -45,6 +45,11 @@ public class SubtitleItem {
             font = determineFontSize(g, rect.height, paragraph);
         } else {
             font = FontManager.getInstance().getFont(StringResources.FONT_COMIC, Font.PLAIN, fontSize);
+            if (paragraph.isEmpty()) {
+                paragraph.setWidth(rect.width);
+                paragraph.setFontMetrics(g.getFontMetrics(font));
+                paragraph.layout();
+            }
         }
 
         g.setFont(font);
@@ -82,5 +87,29 @@ public class SubtitleItem {
             g.drawString(line, rect.x, startY);
             startY += lineHeight;
         }
+    }
+
+    public void fromJson(JsonSubtitle subtitle) {
+        rect.setBounds(subtitle.getRect().getX(), subtitle.getRect().getY(),
+                subtitle.getRect().getWidth(), subtitle.getRect().getHeight());
+        originalText = subtitle.getLang1();
+        translatedText = subtitle.getLang2();
+        originalTextFontSize = subtitle.getSize1();
+        translatedTextFontSize = subtitle.getSize2();
+    }
+
+    public JsonSubtitle toJson() {
+        JsonRect rect = new JsonRect();
+        rect.setX((int) this.rect.getX());
+        rect.setY((int) this.rect.getY());
+        rect.setWidth((int) this.rect.getWidth());
+        rect.setHeight((int) this.rect.getHeight());
+        JsonSubtitle subtitle = new JsonSubtitle();
+        subtitle.setRect(rect);
+        subtitle.setLang1(originalText);
+        subtitle.setSize1(originalTextFontSize);
+        subtitle.setLang2(translatedText);
+        subtitle.setSize2(translatedTextFontSize);
+        return subtitle;
     }
 }

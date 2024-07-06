@@ -11,6 +11,7 @@ public class MenuBarInViewMode {
     public interface Callback {
         void onFileOpen();
         void onFileOpenComic();
+        void onFileSaveSubtitle();
 
         PicWorkerParam.SubtitleSwitch getSubtitleSwitch();
         void onSubtitleOff();
@@ -33,6 +34,8 @@ public class MenuBarInViewMode {
                     case StringResources.MENU_FILE_OPEN -> cb.onFileOpen();
 
                     case StringResources.MENU_FILE_OPEN_COMIC -> cb.onFileOpenComic();
+
+                    case StringResources.MENU_FILE_SAVE_SUBTITLE -> cb.onFileSaveSubtitle();
 
                     case StringResources.MENU_SUBTITLE_NO -> {
                         JRadioButtonMenuItem item = (JRadioButtonMenuItem) e.getSource();
@@ -65,9 +68,13 @@ public class MenuBarInViewMode {
         fileOpen.addActionListener(handler);
         JMenuItem fileOpenComic = new JMenuItem(StringResources.MENU_FILE_OPEN_COMIC);
         fileOpenComic.addActionListener(handler);
+        JMenuItem fileSaveSubtitle = new JMenuItem(StringResources.MENU_FILE_SAVE_SUBTITLE);
+        fileSaveSubtitle.addActionListener(handler);
 
         file.add(fileOpen);
         file.add(fileOpenComic);
+        file.addSeparator();
+        file.add(fileSaveSubtitle);
 
         JMenu image = new JMenu(StringResources.MENU_IMAGE);
         bar.add(image);
