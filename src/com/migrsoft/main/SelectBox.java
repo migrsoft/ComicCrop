@@ -1,7 +1,5 @@
 package com.migrsoft.main;
 
-import com.migrsoft.image.PicWorkerParam;
-
 import java.awt.*;
 
 public class SelectBox {
@@ -13,7 +11,7 @@ public class SelectBox {
 
     private SubtitleItem subtitle;
 
-    private boolean updated = false;
+    private boolean modified = false;
 
     private boolean attached = false;
 
@@ -23,7 +21,7 @@ public class SelectBox {
     }
 
     public void initialize() {
-        updated = false;
+        modified = false;
         rect.setBounds(0, 0, 0, 0);
         if (subtitle != null) {
             if (attached) {
@@ -50,16 +48,27 @@ public class SelectBox {
         range.setBounds(x, y, width, height);
     }
 
+    public SubtitleItem getSubtitle() {
+        return subtitle;
+    }
+
     public void setSubtitle(SubtitleItem subtitle) {
         this.subtitle = subtitle;
         this.attached = true;
+    }
+
+    public SubtitleItem takeSubtitle() {
+        subtitle.rect = rect;
+        SubtitleItem item = subtitle;
+        subtitle = null;
+        return item;
     }
 
     public void updateOriginalText(String text) {
         if (!subtitle.originalText.equals(text)) {
             subtitle.originalText = text;
             subtitle.originalTextFontSize = -1;
-            updated = true;
+            modified = true;
         }
     }
 
@@ -67,7 +76,7 @@ public class SelectBox {
         if (!subtitle.translatedText.equals(text)) {
             subtitle.translatedText = text;
             subtitle.translatedTextFontSize = -1;
-            updated = true;
+            modified = true;
         }
     }
 
@@ -79,15 +88,8 @@ public class SelectBox {
         return subtitle.translatedText;
     }
 
-    public boolean isUpdated() {
-        return updated;
-    }
-
-    public SubtitleItem takeSubtitle() {
-        subtitle.rect = rect;
-        SubtitleItem item = subtitle;
-        subtitle = null;
-        return item;
+    public boolean isModified() {
+        return modified;
     }
 
     public void empty() {

@@ -3,6 +3,8 @@ package com.migrsoft.main;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URI;
@@ -31,17 +33,7 @@ import com.migrsoft.main.ProgressDlg.TaskType;
  * @author wuyulun
  *
  */
-/**
- * @author wuyulun
- *
- */
 public class ComicCrop extends JFrame {
-
-	/**
-	 * 
-	 */
-	@Serial
-	private static final long serialVersionUID = 778619808848682268L;
 
 	private MenuBarInViewMode viewModeMenuBar;
 	
@@ -50,14 +42,22 @@ public class ComicCrop extends JFrame {
 	private PicList list;
 	private Dashboard mBoard;
 	
-	private String lastPath;
-	private String fileName;
+	private String lastPath = "";
+	private String fileName = "";
 
 	private ZipFile zipFile = null;
 
 	public ComicCrop() {
 		super(StringResources.APP_TITLE);
-		setDefaultCloseOperation(EXIT_ON_CLOSE);
+		setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
+		addWindowListener(new WindowAdapter() {
+			@Override
+			public void windowClosing(WindowEvent e) {
+				viewer.saveSubtitles();
+				dispose();
+				System.exit(0);
+			}
+		});
 
 		createViewModeMenu();
 		setJMenuBar(viewModeMenuBar.getMenuBar());
@@ -685,6 +685,7 @@ public class ComicCrop extends JFrame {
 	private HashMap<String, TaskData> taskInfo = null;
 
 	private void closeZipFile() {
+		viewer.saveSubtitles();
 		try {
 			if (zipFile != null) {
 				zipFile.close();

@@ -32,7 +32,7 @@ public class PicViewer extends JPanel
     }
 
     private void saveSubtitle() {
-        if (selectBox.isUpdated()) {
+        if (selectBox.isModified()) {
             longImage.addSubtitle(currentImageItem, selectBox.takeSubtitle(), viewPort);
         }
         selectBox.initialize();
@@ -49,6 +49,7 @@ public class PicViewer extends JPanel
                         currentMode = Mode.Edit;
                     } else {
                         saveSubtitle();
+                        currentImageItem = longImage.getSelectedImage(e.getY() + viewPort.y);
                         SubtitleItem si = longImage.getSubtitleByPos(currentImageItem, e.getX(), e.getY(), viewPort);
                         if (si == null) {
                             currentMode = Mode.View;
@@ -65,7 +66,6 @@ public class PicViewer extends JPanel
                     saveSubtitle();
                     selectBox.setTopLeft(e.getX(), e.getY());
                     currentImageItem = longImage.getSelectedImage(e.getY() + viewPort.y);
-                    System.out.println("current image: " + currentImageItem.index);
                     if (currentImageItem != null) {
                         Rectangle range = currentImageItem.getVisibleRectInViewPort(viewPort);
                         selectBox.setRange(range.x, range.y, range.width, range.height);
@@ -205,7 +205,10 @@ public class PicViewer extends JPanel
     }
 
     private void onPopMenuDelete() {
-
+        if (currentImageItem != null && selectBox.notEmpty()) {
+            longImage.removeSubtitle(currentImageItem, selectBox.getSubtitle(), viewPort);
+            selectBox.initialize();
+        }
     }
 
     private void onPopMenuOcr() {
@@ -321,12 +324,16 @@ public class PicViewer extends JPanel
     }
 
     public void saveSubtitles() {
-        String path = cb.getPath() + cb.getFileName();
-        longImage.saveSubtitles(path);
+        if (!cb.getFileName().isEmpty()) {
+            String path = cb.getPath() + cb.getFileName();
+            longImage.saveSubtitles(path);
+        }
     }
 
     public void loadSubtitles() {
-        String path = cb.getPath() + cb.getFileName();
-        longImage.loadSubtitles(path);
+        if (!cb.getFileName().isEmpty()) {
+            String path = cb.getPath() + cb.getFileName();
+            longImage.loadSubtitles(path);
+        }
     }
 }

@@ -156,8 +156,6 @@ public class LongImage {
                     sy1 = isr.y - rect.y;
                     sy2 = sy1 + isr.height;
                     g.drawImage(ii.image, dx1, dy1, dx2, dy2, sx1, sy1, sx2, sy2, null);
-//                    g.setPaint(Color.RED);
-//                    g.drawRect(dx1, dy1, (dx2 - dx1), (dy2 - dy1));
                     dy1 += isr.height;
 
                     // 绘制字幕
@@ -198,11 +196,10 @@ public class LongImage {
     }
 
     public SubtitleItem getSubtitleByPos(ImageItem item, int x, int y, Rectangle viewPort) {
-        ImageItem ii = (item == null) ? getSelectedImage(y + viewPort.y) : item;
-        if (ii != null) {
-            int imageX = x - getXInViewPort(ii, viewPort);
-            int imageY = y + viewPort.y - ii.y;
-            return subtitleManager.getSubtitleByPos(ii.name, imageX, imageY);
+        if (item != null) {
+            int imageX = x - getXInViewPort(item, viewPort);
+            int imageY = y + viewPort.y - item.y;
+            return subtitleManager.getSubtitleByPos(item.name, imageX, imageY);
         }
         return null;
     }
@@ -218,7 +215,9 @@ public class LongImage {
     }
 
     public void saveSubtitles(String path) {
-        subtitleManager.save(path + StringResources.PARAM_SUBTITLE_EXT_NAME);
+        if (subtitleManager.isModified()) {
+            subtitleManager.save(path + StringResources.PARAM_SUBTITLE_EXT_NAME);
+        }
     }
 
     public void loadSubtitles(String path) {

@@ -12,6 +12,12 @@ public class SubtitleManager {
 
     private final Map<String, List<SubtitleItem>> map = new HashMap<>();
 
+    private boolean modified = false;
+
+    public boolean isModified() {
+        return modified;
+    }
+
     public List<SubtitleItem> getListByName(String name) {
         List<SubtitleItem> list = map.get(name);
         if (list == null) {
@@ -27,6 +33,7 @@ public class SubtitleManager {
     }
 
     public void addSubtitle(String name, SubtitleItem item) {
+        modified = true;
         int index = 0;
         List<SubtitleItem> subtitles = getListByName(name);
         for (SubtitleItem si : subtitles) {
@@ -44,6 +51,7 @@ public class SubtitleManager {
         int index = 0;
         for (SubtitleItem si : subtitles) {
             if (si.rect == item.rect) {
+                modified = true;
                 subtitles.remove(index);
                 return;
             }
@@ -81,13 +89,17 @@ public class SubtitleManager {
             for (SubtitleItem si : entry.getValue()) {
                 subtitles.add(si.toJson());
             }
-            jmap.put(entry.getKey(), subtitles);
+            if (!subtitles.isEmpty()) {
+                jmap.put(entry.getKey(), subtitles);
+            }
         }
         Wrapper wrapper = new Wrapper();
         wrapper.setMap(jmap);
         ObjectMapper mapper = new ObjectMapper();
         try {
             mapper.writeValue(new File(path), wrapper);
+            modified = false;
+            System.out.println("Save comic subtitles to file " + path);
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
@@ -107,6 +119,7 @@ public class SubtitleManager {
                         subtitles.add(si);
                     }
                     map.put(entry.getKey(), subtitles);
+                    modified = false;
                 }
             }
         } catch (Exception e) {
