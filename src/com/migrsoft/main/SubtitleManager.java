@@ -106,6 +106,7 @@ public class SubtitleManager {
     }
 
     public void load(String path) {
+        map.clear();
         ObjectMapper mapper = new ObjectMapper();
         try {
             File file = new File(path);

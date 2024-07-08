@@ -821,9 +821,8 @@ public class ComicCrop extends JFrame {
 			taskList.sort(new SortByName());
 			list.update(taskList);
 
-			viewer.loadSubtitles();
-
 			viewer.reset();
+			viewer.loadSubtitles();
 			viewer.repaint();
 		}
 	}
