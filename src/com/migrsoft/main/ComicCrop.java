@@ -111,6 +111,21 @@ public class ComicCrop extends JFrame {
 				MainParam.getInstance().setSubtitleSwitch(PicWorkerParam.SubtitleSwitch.Chinese);
 				repaint();
 			}
+
+			@Override
+			public MainParam.SpacingSwitch getSpacingSwitch() {
+				return MainParam.getInstance().getSpacingSwitch();
+			}
+
+			@Override
+			public void onSpacingOn() {
+				MainParam.getInstance().setSpacingSwitch(MainParam.SpacingSwitch.On);
+			}
+
+			@Override
+			public void onSpacingOff() {
+				MainParam.getInstance().setSpacingSwitch(MainParam.SpacingSwitch.Off);
+			}
 		};
 
 		viewModeMenuBar = new MenuBarInViewMode(viewModeMenuCB);

@@ -17,6 +17,10 @@ public class MenuBarInViewMode {
         void onSubtitleOff();
         void onSubtitleOrigin();
         void onSubtitleChinese();
+
+        MainParam.SpacingSwitch getSpacingSwitch();
+        void onSpacingOn();
+        void onSpacingOff();
     }
 
     private final JMenuBar bar;
@@ -55,6 +59,20 @@ public class MenuBarInViewMode {
                         JRadioButtonMenuItem item = (JRadioButtonMenuItem) e.getSource();
                         if (item.isSelected()) {
                             cb.onSubtitleChinese();
+                        }
+                    }
+
+                    case StringResources.MENU_NO_PAGE_SPACING -> {
+                        JRadioButtonMenuItem item = (JRadioButtonMenuItem) e.getSource();
+                        if (item.isSelected()) {
+                            cb.onSpacingOff();
+                        }
+                    }
+
+                    case StringResources.MENU_WITH_PAGE_SPACING -> {
+                        JRadioButtonMenuItem item = (JRadioButtonMenuItem) e.getSource();
+                        if (item.isSelected()) {
+                            cb.onSpacingOn();
                         }
                     }
                 }
@@ -97,9 +115,26 @@ public class MenuBarInViewMode {
             case Chinese -> subtitleChinese.setSelected(true);
         }
 
+        JRadioButtonMenuItem spacingOff = new JRadioButtonMenuItem(StringResources.MENU_NO_PAGE_SPACING);
+        spacingOff.addActionListener(handler);
+        JRadioButtonMenuItem spacingOn = new JRadioButtonMenuItem(StringResources.MENU_WITH_PAGE_SPACING);
+        spacingOn.addActionListener(handler);
+
+        ButtonGroup spacing = new ButtonGroup();
+        spacing.add(spacingOff);
+        spacing.add(spacingOn);
+
+        switch (cb.getSpacingSwitch()) {
+            case Off -> spacingOff.setSelected(true);
+            case On -> spacingOn.setSelected(true);
+        }
+
         image.add(subtitleNo);
         image.add(subtitleOrigin);
         image.add(subtitleChinese);
+        image.addSeparator();
+        image.add(spacingOff);
+        image.add(spacingOn);
     }
 
     public JMenuBar getMenuBar() {

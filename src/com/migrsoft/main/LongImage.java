@@ -119,7 +119,7 @@ public class LongImage {
         for (ImageItem ii : imageList) {
             ii.x = (width - ii.image.getWidth()) / 2;
             ii.y = y;
-            y += ii.image.getHeight();
+            y += ii.image.getHeight() + MainParam.getInstance().getPageSpacing();
         }
         height = y;
     }
@@ -156,7 +156,12 @@ public class LongImage {
                     sy1 = isr.y - rect.y;
                     sy2 = sy1 + isr.height;
                     g.drawImage(ii.image, dx1, dy1, dx2, dy2, sx1, sy1, sx2, sy2, null);
+                    g.setPaint(Color.BLUE);
+                    g.drawRect(dx1, dy1, rect.width-1, isr.height-1);
                     dy1 += isr.height;
+                    if (isr.height < viewPort.height) {
+                        dy1 += MainParam.getInstance().getPageSpacing();
+                    }
 
                     // 绘制字幕
                     if (MainParam.getInstance().getSubtitleSwitch() != PicWorkerParam.SubtitleSwitch.Off) {

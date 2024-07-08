@@ -17,6 +17,8 @@ public class StringResources {
     public static final String MENU_SUBTITLE_NO = "No Subtitle";
     public static final String MENU_SUBTITLE_ORIGIN = "Original Subtitles";
     public static final String MENU_SUBTITLE_CHINESE = "Chinese Subtitles";
+    public static final String MENU_NO_PAGE_SPACING = "No Page Spacing";
+    public static final String MENU_WITH_PAGE_SPACING = "With Page Spacing";
 
     public static final String MENU_POP_CREATE = "Create Subtitle";
     public static final String MENU_POP_DELETE = "Delete Subtitle";
