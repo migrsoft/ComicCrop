@@ -15,6 +15,7 @@ public class LongImage {
     public int height = 0;
 
     private final Font mainFont;
+    private final Font pageNumberFont;
 
     private final LinkedList<ImageItem> imageList = new LinkedList<>();
 
@@ -24,6 +25,7 @@ public class LongImage {
 
     LongImage() {
         mainFont = FontManager.getInstance().getFont(StringResources.FONT_MAIN, Font.BOLD, 20);
+        pageNumberFont = FontManager.getInstance().getFont(StringResources.FONT_MAIN, Font.PLAIN, 16);
         subtitleManager = new SubtitleManager();
     }
 
@@ -121,17 +123,21 @@ public class LongImage {
             ii.y = y;
             y += ii.image.getHeight() + MainParam.getInstance().getPageSpacing();
         }
-        height = y;
+        height = y - MainParam.getInstance().getPageSpacing();
     }
 
     public void paint(Graphics2D g, Rectangle viewPort) {
         if (!imageList.isEmpty()) {
+            FontRenderContext frc = g.getFontRenderContext();
+            Rectangle2D textBounds;
             boolean first = true;
-            String hintSize = "? x ?";
+            String imageSizeTag = "";
+            String pageNumberTag = "";
             int dx1, dx2, dy1 = 0, dy2;
             int sx1, sx2, sy1, sy2;
             Rectangle rect = new Rectangle();
             Rectangle isr = new Rectangle();
+            g.setFont(pageNumberFont);
             for (ImageItem ii : imageList) {
                 if (ii.y >= viewPort.y + viewPort.height) {
                     break;
@@ -143,7 +149,7 @@ public class LongImage {
                     Rectangle.intersect(rect, viewPort, isr);
                     if (first) {
                         first = false;
-                        hintSize = rect.width + " x " + rect.height;
+                        imageSizeTag = rect.width + " x " + rect.height;
                         currentIndex = ii.index;
                     }
 
@@ -156,8 +162,21 @@ public class LongImage {
                     sy1 = isr.y - rect.y;
                     sy2 = sy1 + isr.height;
                     g.drawImage(ii.image, dx1, dy1, dx2, dy2, sx1, sy1, sx2, sy2, null);
-                    g.setPaint(Color.BLUE);
-                    g.drawRect(dx1, dy1, rect.width-1, isr.height-1);
+                    if (sy2 == ii.image.getHeight()) {
+                        pageNumberTag = String.valueOf(ii.index + 1);
+                        textBounds = pageNumberFont.getStringBounds(pageNumberTag, frc);
+                        Rectangle pageNumberRect = new Rectangle();
+                        pageNumberRect.setLocation(
+                                (int) ((viewPort.width - textBounds.getWidth())/2),
+                                (int) (dy2 - textBounds.getHeight()));
+                        pageNumberRect.setSize((int) textBounds.getWidth(), (int) textBounds.getHeight());
+                        g.setPaint(Color.YELLOW);
+                        g.fillRect(pageNumberRect.x, pageNumberRect.y, pageNumberRect.width, pageNumberRect.height);
+                        g.setPaint(Color.BLACK);
+                        g.drawString(pageNumberTag, pageNumberRect.x, (int) (pageNumberRect.y - textBounds.getY()));
+                    }
+//                    g.setPaint(Color.BLUE);
+//                    g.drawRect(dx1, dy1, rect.width-1, isr.height-1);
                     dy1 += isr.height;
                     if (isr.height < viewPort.height) {
                         dy1 += MainParam.getInstance().getPageSpacing();
@@ -183,11 +202,10 @@ public class LongImage {
                 }
             }
             // 显示单图尺寸
-            FontRenderContext frc = g.getFontRenderContext();
-            Rectangle2D bounds = mainFont.getStringBounds(hintSize, frc);
+            textBounds = mainFont.getStringBounds(imageSizeTag, frc);
             g.setFont(mainFont);
             g.setPaint(Color.LIGHT_GRAY);
-            g.drawString(hintSize, 2, -(int) bounds.getY() + 2);
+            g.drawString(imageSizeTag, 2, -(int) textBounds.getY() + 2);
         }
     }
 
