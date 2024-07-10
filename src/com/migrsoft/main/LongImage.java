@@ -126,7 +126,7 @@ public class LongImage {
         height = y - MainParam.getInstance().getPageSpacing();
     }
 
-    public void paint(Graphics2D g, Rectangle viewPort) {
+    public void paint(Graphics2D g, Rectangle viewPort, SubtitleItem subtitle, boolean showPageNumber) {
         if (!imageList.isEmpty()) {
             FontRenderContext frc = g.getFontRenderContext();
             Rectangle2D textBounds;
@@ -162,7 +162,8 @@ public class LongImage {
                     sy1 = isr.y - rect.y;
                     sy2 = sy1 + isr.height;
                     g.drawImage(ii.image, dx1, dy1, dx2, dy2, sx1, sy1, sx2, sy2, null);
-                    if (sy2 == ii.image.getHeight()) {
+                    // 绘制页码
+                    if (showPageNumber && sy2 == ii.image.getHeight()) {
                         pageNumberTag = String.valueOf(ii.index + 1);
                         textBounds = pageNumberFont.getStringBounds(pageNumberTag, frc);
                         Rectangle pageNumberRect = new Rectangle();
@@ -186,6 +187,7 @@ public class LongImage {
                     if (MainParam.getInstance().getSubtitleSwitch() != PicWorkerParam.SubtitleSwitch.Off) {
                         java.util.List<SubtitleItem> subtitles = subtitleManager.getListByName(ii.name);
                         for (SubtitleItem si : subtitles) {
+                            if (si == subtitle) continue;
                             rect.setBounds(
                                     getXInViewPort(ii, viewPort) + si.rect.x, ii.y + si.rect.y,
                                     si.rect.width, si.rect.height);

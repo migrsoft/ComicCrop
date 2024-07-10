@@ -113,18 +113,24 @@ public class ComicCrop extends JFrame {
 			}
 
 			@Override
-			public MainParam.SpacingSwitch getSpacingSwitch() {
-				return MainParam.getInstance().getSpacingSwitch();
+			public boolean getPageSpacingSwitch() {
+				return MainParam.getInstance().getPageSpacingSwitch();
 			}
 
 			@Override
-			public void onSpacingOn() {
-				MainParam.getInstance().setSpacingSwitch(MainParam.SpacingSwitch.On);
+			public void setSpacingSwitch(boolean value) {
+				MainParam.getInstance().setPageSpacingSwitch(value);
 			}
 
 			@Override
-			public void onSpacingOff() {
-				MainParam.getInstance().setSpacingSwitch(MainParam.SpacingSwitch.Off);
+			public boolean getPageNumberSwitch() {
+				return MainParam.getInstance().getPageNumberSwitch();
+			}
+
+			@Override
+			public void setPageNumberSwitch(boolean value) {
+				MainParam.getInstance().setPageNumberSwitch(value);
+				repaint();
 			}
 		};
 

@@ -38,15 +38,19 @@ public class PicViewer extends JPanel
         selectBox.initialize();
     }
 
+    private Point initialClick;
+
     @Override
     public void mousePressed(MouseEvent e) {
         if (e.getButton() == MouseEvent.BUTTON1) {
             boolean repaint = false;
+            initialClick = null;
             switch (currentMode) {
                 case View:
                 case Edit:
                     if (selectBox.contains(e.getX(), e.getY())) {
                         currentMode = Mode.Edit;
+                        initialClick = e.getPoint();
                     } else {
                         saveSubtitle();
                         currentImageItem = longImage.getSelectedImage(e.getY() + viewPort.y);
@@ -102,10 +106,24 @@ public class PicViewer extends JPanel
 
     @Override
     public void mouseDragged(MouseEvent e) {
-        if (currentMode == Mode.Create) {
-            if (selectBox.dragBottomRight(e.getX(), e.getY())) {
-                repaint();
-            }
+        switch (currentMode) {
+            case Create:
+                if (selectBox.dragBottomRight(e.getX(), e.getY())) {
+                    repaint();
+                }
+                break;
+
+            case Edit:
+                if (initialClick != null) {
+                    int xMoved = e.getX() - initialClick.x;
+                    int yMoved = e.getY() - initialClick.y;
+                    int x = selectBox.rect.x + xMoved;
+                    int y = selectBox.rect.y + yMoved;
+                    selectBox.setLocation(x, y);
+                    initialClick = e.getPoint();
+                    repaint();
+                }
+                break;
         }
     }
 
@@ -283,7 +301,7 @@ public class PicViewer extends JPanel
         g2.fill(area);
 
         if (longImage.height > 0) {
-            longImage.paint(g2, viewPort);
+            longImage.paint(g2, viewPort, selectBox.getSubtitle(), MainParam.getInstance().getPageNumberSwitch());
             cb.setCurrentIndex(longImage.getCurrentIndex());
         }
 

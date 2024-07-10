@@ -18,9 +18,11 @@ public class MenuBarInViewMode {
         void onSubtitleOrigin();
         void onSubtitleChinese();
 
-        MainParam.SpacingSwitch getSpacingSwitch();
-        void onSpacingOn();
-        void onSpacingOff();
+        boolean getPageSpacingSwitch();
+        void setSpacingSwitch(boolean value);
+
+        boolean getPageNumberSwitch();
+        void setPageNumberSwitch(boolean value);
     }
 
     private final JMenuBar bar;
@@ -62,18 +64,14 @@ public class MenuBarInViewMode {
                         }
                     }
 
-                    case StringResources.MENU_NO_PAGE_SPACING -> {
-                        JRadioButtonMenuItem item = (JRadioButtonMenuItem) e.getSource();
-                        if (item.isSelected()) {
-                            cb.onSpacingOff();
-                        }
+                    case StringResources.MENU_PAGE_SPACING -> {
+                        JCheckBoxMenuItem item = (JCheckBoxMenuItem) e.getSource();
+                        cb.setSpacingSwitch(item.isSelected());
                     }
 
-                    case StringResources.MENU_WITH_PAGE_SPACING -> {
-                        JRadioButtonMenuItem item = (JRadioButtonMenuItem) e.getSource();
-                        if (item.isSelected()) {
-                            cb.onSpacingOn();
-                        }
+                    case StringResources.MENU_PAGE_NUMBER -> {
+                        JCheckBoxMenuItem item = (JCheckBoxMenuItem) e.getSource();
+                        cb.setPageNumberSwitch(item.isSelected());
                     }
                 }
             }
@@ -115,26 +113,20 @@ public class MenuBarInViewMode {
             case Chinese -> subtitleChinese.setSelected(true);
         }
 
-        JRadioButtonMenuItem spacingOff = new JRadioButtonMenuItem(StringResources.MENU_NO_PAGE_SPACING);
-        spacingOff.addActionListener(handler);
-        JRadioButtonMenuItem spacingOn = new JRadioButtonMenuItem(StringResources.MENU_WITH_PAGE_SPACING);
-        spacingOn.addActionListener(handler);
+        JCheckBoxMenuItem pageSpacing = new JCheckBoxMenuItem(StringResources.MENU_PAGE_SPACING);
+        pageSpacing.addActionListener(handler);
+        pageSpacing.setSelected(cb.getPageSpacingSwitch());
 
-        ButtonGroup spacing = new ButtonGroup();
-        spacing.add(spacingOff);
-        spacing.add(spacingOn);
-
-        switch (cb.getSpacingSwitch()) {
-            case Off -> spacingOff.setSelected(true);
-            case On -> spacingOn.setSelected(true);
-        }
+        JCheckBoxMenuItem pageNumber = new JCheckBoxMenuItem(StringResources.MENU_PAGE_NUMBER);
+        pageNumber.addActionListener(handler);
+        pageNumber.setSelected(cb.getPageNumberSwitch());
 
         image.add(subtitleNo);
         image.add(subtitleOrigin);
         image.add(subtitleChinese);
         image.addSeparator();
-        image.add(spacingOff);
-        image.add(spacingOn);
+        image.add(pageSpacing);
+        image.add(pageNumber);
     }
 
     public JMenuBar getMenuBar() {

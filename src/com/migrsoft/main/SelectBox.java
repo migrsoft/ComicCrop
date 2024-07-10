@@ -44,6 +44,11 @@ public class SelectBox {
         rect.height = MINI_SIDE;
     }
 
+    public void setLocation(int x, int y) {
+        rect.setLocation(x, y);
+        modified = true;
+    }
+
     public void setRange(int x, int y, int width, int height) {
         range.setBounds(x, y, width, height);
     }

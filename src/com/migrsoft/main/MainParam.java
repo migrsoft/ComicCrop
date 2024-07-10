@@ -2,8 +2,6 @@ package com.migrsoft.main;
 
 import com.migrsoft.image.PicWorkerParam;
 
-import javax.xml.parsers.SAXParser;
-
 public class MainParam extends PicWorkerParam {
 
 	static private MainParam sMainParam = null;
@@ -75,24 +73,33 @@ public class MainParam extends PicWorkerParam {
 		mMaxHeight = maxh;
 	}
 
-	public enum SpacingSwitch {
-		On,
-		Off,
+	private boolean pageSpacingSwitch = true;
+
+	public boolean getPageSpacingSwitch() {
+		return pageSpacingSwitch;
 	}
 
-	private SpacingSwitch spacingSwitch = SpacingSwitch.Off;
-
-	public SpacingSwitch getSpacingSwitch() {
-		return spacingSwitch;
+	public void setPageSpacingSwitch(boolean value) {
+		pageSpacingSwitch = value;
 	}
 
-	public void setSpacingSwitch(SpacingSwitch value) {
-		spacingSwitch = value;
-	}
-
-	private final int pageSpacing = 20;
+	private int pageSpacing = 20;
 
 	public int getPageSpacing() {
-		return (spacingSwitch == SpacingSwitch.On) ? pageSpacing : 0;
+		return (pageSpacingSwitch) ? pageSpacing : 0;
+	}
+
+	public void setPageSpacing(int spacing) {
+		pageSpacing = spacing;
+	}
+
+	private boolean pageNumberSwitch = false;
+
+	public boolean getPageNumberSwitch() {
+		return pageNumberSwitch;
+	}
+
+	public void setPageNumberSwitch(boolean value) {
+		pageNumberSwitch = value;
 	}
 }
