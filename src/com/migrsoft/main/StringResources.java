@@ -34,10 +34,22 @@ public class StringResources {
     public static final String MENU_PIC_SIZE_600 = "600 x 1000";
     public static final String MENU_PIC_SIZE_800 = "800 x 1280";
 
+    public static final String MENU_TASK = "Task";
+    public static final String MENU_TASK_RENAME = "Rename in Order";
+    public static final String MENU_TASK_ADV_RENAME = "Advanced Rename";
+    public static final String MENU_TASK_SPLIT = "Batch Operation: Split";
+    public static final String MENU_TASK_CROP_A = "Batch Operation: Rotate + Crop";
+    public static final String MENU_TASK_CROP_B = "Batch Operation: Rotate + Crop + Scale";
+    public static final String MENU_TASK_CROP_C = "Batch Operation: Rotate + Crop + Scale by Width";
+
     public static final String MENU_POP_CREATE = "Create Subtitle";
     public static final String MENU_POP_DELETE = "Delete Subtitle";
     public static final String MENU_POP_OCR = "OCR";
     public static final String MENU_POP_EDIT = "Edit";
+
+    public static final String MENU_HELP = "Help";
+    public static final String MENU_HELP_MANUAL = "Manual";
+    public static final String MENU_HELP_ABOUT = "About ...";
 
     public static final String BUTTON_TRANSLATE = "Translate";
     public static final String BUTTON_SAVE = "Save";

@@ -4,73 +4,68 @@ import com.migrsoft.image.PicWorkerParam;
 
 public class MainParam extends PicWorkerParam {
 
-	static private MainParam sMainParam = null;
+	static private MainParam instance = null;
 	
 	static public MainParam getInstance() {
-		if (sMainParam == null)
-			sMainParam = new MainParam();
-		return sMainParam;
+		if (instance == null)
+			instance = new MainParam();
+		return instance;
 	}
 
-	private boolean mAutoGrayLevel;
+	private boolean autoGrayLevel;
 	
-	private int mMaxThreads;
+	private final int maxThreads;
 	
-	private boolean mCropWhite;
+	private boolean cropWhiteEdge;
 
-	private boolean mIsCropAll;
+	private boolean isCropAll;
 	
-	private int mMaxWidth;
-	private int mMaxHeight;
+	private int maxWidth;
+	private int maxHeight;
 	
 	public MainParam() {
-		mAutoGrayLevel = true;
-		mMaxThreads = 12;
-		mCropWhite = true;
-		mIsCropAll = true;
-		
-		mMaxWidth = 600;
-		mMaxHeight = 1000;
+		maxThreads = Runtime.getRuntime().availableProcessors();
+		autoGrayLevel = true;
+		cropWhiteEdge = true;
+		isCropAll = true;
+		maxWidth = 600;
+		maxHeight = 1000;
 	}
 	
 	public boolean isAutoGrayLevel() {
-		return mAutoGrayLevel;
+		return autoGrayLevel;
 	}
 
 	public void setAutoGrayLevel(boolean auto) {
-		this.mAutoGrayLevel = auto;
+		this.autoGrayLevel = auto;
 	}
 
 	public int getMaxThreads() {
-		return mMaxThreads;
+		return maxThreads;
 	}
 
-	public void setMaxThreads(int maxThreads) {
-		this.mMaxThreads = maxThreads;
-	}
-	
-	public boolean isCropWhite() { return mCropWhite; }
+	public boolean isCropWhite() { return cropWhiteEdge; }
 
-	public void setCropWhite(boolean b) { mCropWhite = b; }
+	public void setCropWhite(boolean b) { cropWhiteEdge = b; }
 
-	public boolean isCropAll() { return mIsCropAll; }
+	public boolean isCropAll() { return isCropAll; }
 
-	public void setCropAll(boolean b) { mIsCropAll = b; }
+	public void setCropAll(boolean b) { isCropAll = b; }
 
 	public int getMaxWidth() {
-		return mMaxWidth;
+		return maxWidth;
 	}
 	
 	public void setMaxWidth(int maxw) {
-		mMaxWidth = maxw;
+		maxWidth = maxw;
 	}
 	
 	public int getMaxHeight() {
-		return mMaxHeight;
+		return maxHeight;
 	}
 	
 	public void setMaxHeight(int maxh) {
-		mMaxHeight = maxh;
+		maxHeight = maxh;
 	}
 
 	private boolean pageSpacingSwitch = true;

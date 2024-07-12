@@ -89,10 +89,10 @@ public class PicWorker {
 		else
 			newPath = path.substring(0, ext) + extName;
 
-        ret = switch (param.getOutputFormat()) {
-            case PicWorkerParam.OUTPUT_FORMAT_PNG -> saveAsPng(image, newPath);
-            case PicWorkerParam.OUTPUT_FORMAT_JPG -> saveAsJpeg(image, newPath, param);
-            case PicWorkerParam.OUTPUT_FORMAT_WEBP -> saveAsWebp(image, newPath);
+        ret = switch (param.getImageFormat()) {
+            case Png-> saveAsPng(image, newPath);
+            case Jpeg -> saveAsJpeg(image, newPath, param);
+            case Webp -> saveAsWebp(image, newPath);
             default -> false;
         };
 		

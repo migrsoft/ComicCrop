@@ -5,6 +5,7 @@ import com.migrsoft.image.PicWorkerParam;
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.sql.DataTruncation;
 
 public class MenuBarInEditMode {
 
@@ -25,6 +26,16 @@ public class MenuBarInEditMode {
         void onCutWhiteEdge(boolean value);
         int getImageSize();
         void onImageSize(int width, int height);
+
+        void onRename();
+        void onAdvancedRename();
+        void onSplit();
+        void onCropA();
+        void onCropB();
+        void onCropC();
+
+        void onManual();
+        void onAbout();
     }
     private final JMenuBar bar;
 
@@ -55,6 +66,14 @@ public class MenuBarInEditMode {
                     case StringResources.MENU_PIC_SIZE_480 -> cb.onImageSize(480, 800);
                     case StringResources.MENU_PIC_SIZE_600 -> cb.onImageSize(600, 1000);
                     case StringResources.MENU_PIC_SIZE_800 -> cb.onImageSize(800, 1280);
+                    case StringResources.MENU_TASK_RENAME -> cb.onRename();
+                    case StringResources.MENU_TASK_ADV_RENAME -> cb.onAdvancedRename();
+                    case StringResources.MENU_TASK_SPLIT -> cb.onSplit();
+                    case StringResources.MENU_TASK_CROP_A -> cb.onCropA();
+                    case StringResources.MENU_TASK_CROP_B -> cb.onCropB();
+                    case StringResources.MENU_TASK_CROP_C -> cb.onCropC();
+                    case StringResources.MENU_HELP_MANUAL -> cb.onManual();
+                    case StringResources.MENU_HELP_ABOUT -> cb.onAbout();
                 }
             }
         };
@@ -161,6 +180,41 @@ public class MenuBarInEditMode {
         image.add(imageSize480);
         image.add(imageSize600);
         image.add(imageSize800);
+
+        JMenu task = new JMenu(StringResources.MENU_TASK);
+        bar.add(task);
+
+        JMenuItem taskRename = new JMenuItem(StringResources.MENU_TASK_RENAME);
+        taskRename.addActionListener(handler);
+        JMenuItem taskAdvRename = new JMenuItem(StringResources.MENU_TASK_ADV_RENAME);
+        taskAdvRename.addActionListener(handler);
+        JMenuItem taskSplit = new JMenuItem(StringResources.MENU_TASK_SPLIT);
+        taskSplit.addActionListener(handler);
+        JMenuItem taskCropA = new JMenuItem(StringResources.MENU_TASK_CROP_A);
+        taskCropA.addActionListener(handler);
+        JMenuItem taskCropB = new JMenuItem(StringResources.MENU_TASK_CROP_B);
+        taskCropB.addActionListener(handler);
+        JMenuItem taskCropC = new JMenuItem(StringResources.MENU_TASK_CROP_C);
+        taskCropC.addActionListener(handler);
+
+        task.add(taskRename);
+        task.add(taskAdvRename);
+        task.addSeparator();
+        task.add(taskSplit);
+        task.add(taskCropA);
+        task.add(taskCropB);
+        task.add(taskCropC);
+
+        JMenu help = new JMenu(StringResources.MENU_HELP);
+        bar.add(help);
+
+        JMenuItem helpManual = new JMenuItem(StringResources.MENU_HELP_MANUAL);
+        helpManual.addActionListener(handler);
+        JMenuItem helpAbout = new JMenuItem(StringResources.MENU_HELP_ABOUT);
+        helpAbout.addActionListener(handler);
+
+        help.add(helpManual);
+        help.add(helpAbout);
     }
 
     public JMenuBar getMenuBar() {

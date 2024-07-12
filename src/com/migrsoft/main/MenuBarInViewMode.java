@@ -21,6 +21,9 @@ public class MenuBarInViewMode {
 
         boolean getPageNumberSwitch();
         void setPageNumberSwitch(boolean value);
+
+        void onManual();
+        void onAbout();
     }
 
     private final JMenuBar bar;
@@ -48,6 +51,8 @@ public class MenuBarInViewMode {
                         JCheckBoxMenuItem item = (JCheckBoxMenuItem) e.getSource();
                         cb.setPageNumberSwitch(item.isSelected());
                     }
+                    case StringResources.MENU_HELP_MANUAL -> cb.onManual();
+                    case StringResources.MENU_HELP_ABOUT -> cb.onAbout();
                 }
             }
         };
@@ -102,6 +107,17 @@ public class MenuBarInViewMode {
         image.addSeparator();
         image.add(pageSpacing);
         image.add(pageNumber);
+
+        JMenu help = new JMenu(StringResources.MENU_HELP);
+        bar.add(help);
+
+        JMenuItem helpManual = new JMenuItem(StringResources.MENU_HELP_MANUAL);
+        helpManual.addActionListener(handler);
+        JMenuItem helpAbout = new JMenuItem(StringResources.MENU_HELP_ABOUT);
+        helpAbout.addActionListener(handler);
+
+        help.add(helpManual);
+        help.add(helpAbout);
     }
 
     public JMenuBar getMenuBar() {
