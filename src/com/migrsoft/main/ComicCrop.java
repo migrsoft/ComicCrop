@@ -30,7 +30,7 @@ public class ComicCrop extends JFrame {
 	private PicEditor editor;
 	private PicViewer viewer;
 	private PicList list;
-	private Dashboard mBoard;
+	private Dashboard board;
 	
 	private String lastPath = "";
 	private String fileName = "";
@@ -279,14 +279,14 @@ public class ComicCrop extends JFrame {
 
 			@Override
 			public void cropChanged(boolean isWhite) {
-				mBoard.setCropType(isWhite);
+				board.setCropType(isWhite);
 			}
 
 			@Override
 			public int[] getCropValues() {
 				int[] vs = new int[2];
-				vs[0] = mBoard.getCropTop();
-				vs[1] = mBoard.getCropBottom();
+				vs[0] = board.getCropTop();
+				vs[1] = board.getCropBottom();
 				return vs;
 			}
 		});
@@ -355,11 +355,11 @@ public class ComicCrop extends JFrame {
 			}
 		});
 		
-		mBoard = new Dashboard(editor.isCropMode());
-		mBoard.setHorizontalSplit(editor.isHorizonalSplit());
-		mBoard.setSplitNum(editor.getSplitNum());
-		mBoard.setLeftToRight(editor.isLeftToRight());
-		mBoard.setActListener(new Dashboard.ActListener() {
+		board = new Dashboard(editor.isCropMode());
+		board.setHorizontalSplit(editor.isHorizonalSplit());
+		board.setSplitNum(editor.getSplitNum());
+		board.setLeftToRight(editor.isLeftToRight());
+		board.setActListener(new Dashboard.ActListener() {
 			
 			@Override
 			public void onClockwise(boolean ctrlPressed) {
@@ -388,9 +388,9 @@ public class ComicCrop extends JFrame {
 
 			@Override
 			public void onOptionChanged() {
-				boolean hori = mBoard.isHorizontalSplit();
-				boolean ltor = mBoard.isLeftToRight();
-				int num = mBoard.getSplitNum();
+				boolean hori = board.isHorizontalSplit();
+				boolean ltor = board.isLeftToRight();
+				int num = board.getSplitNum();
 				editor.setSplitInfo(hori, num, ltor);
 			}
 
@@ -468,14 +468,14 @@ public class ComicCrop extends JFrame {
 			case ModeView:
 				setJMenuBar(viewModeMenuBar.getMenuBar());
 				container.remove(editor);
-				container.remove(mBoard);
+				container.remove(board);
 				container.add(viewer, BorderLayout.CENTER);
 				break;
 			case ModeEdit:
 				setJMenuBar(editModeMenuBar.getMenuBar());
 				container.remove(viewer);
 				container.add(editor, BorderLayout.CENTER);
-				container.add(mBoard, BorderLayout.EAST);
+				container.add(board, BorderLayout.EAST);
 				break;
 		}
 		container.revalidate();
@@ -498,7 +498,7 @@ public class ComicCrop extends JFrame {
 
 			@Override
 			public String getDescription() {
-				return "图像文件";
+				return StringResources.STR_IMAGE_FILES;
 			}
 			
 		});
@@ -623,7 +623,7 @@ public class ComicCrop extends JFrame {
 		
 		resetEditor();
 		
-		mBoard.useCropMode();
+		board.useCropMode();
 		editor.useCropMode();
 	}
 
@@ -638,7 +638,8 @@ public class ComicCrop extends JFrame {
 	@SuppressWarnings("unchecked")
 	private void readTasks() {
 		if (JOptionPane.showConfirmDialog(
-				this, "是否读取保存的工作？", "读取确认", JOptionPane.YES_NO_OPTION) == JOptionPane.NO_OPTION)
+				this, "是否读取保存的工作？", "读取确认",
+				JOptionPane.YES_NO_OPTION) == JOptionPane.NO_OPTION)
 			return;
 		
 		try {
@@ -660,8 +661,8 @@ public class ComicCrop extends JFrame {
 			return;
 		
 		if (JOptionPane.showConfirmDialog(
-				this, "是否保存现在工作？",
-				"保存确认", JOptionPane.YES_NO_OPTION) == JOptionPane.NO_OPTION)
+				this, "是否保存现在工作？", "保存确认",
+				JOptionPane.YES_NO_OPTION) == JOptionPane.NO_OPTION)
 			return;
 		
 		editor.saveTaskData();
@@ -687,8 +688,8 @@ public class ComicCrop extends JFrame {
 		
 		if (all.length > 0) {
 			if (JOptionPane.showConfirmDialog(
-					this, "是否清空 " + path + " 文件夹？",
-					"删除确认", JOptionPane.YES_NO_OPTION) == JOptionPane.NO_OPTION)
+					this, "是否清空 " + path + " 文件夹？", "删除确认",
+					JOptionPane.YES_NO_OPTION) == JOptionPane.NO_OPTION)
 				return;
 		}
 		
@@ -768,8 +769,8 @@ public class ComicCrop extends JFrame {
 		}
 		if (!list.isEmpty()) {
 			if (JOptionPane.showConfirmDialog(
-					this, "是否重命名列表中的图片？",
-					"确认", JOptionPane.YES_NO_OPTION) == JOptionPane.NO_OPTION)
+					this, "是否重命名列表中的图片？", "确认",
+					JOptionPane.YES_NO_OPTION) == JOptionPane.NO_OPTION)
 				return;
 			
 			String prefix = JOptionPane.showInputDialog("输入文件名前缀");
@@ -813,11 +814,9 @@ public class ComicCrop extends JFrame {
 			if (useMultiThreads(taskList.size())) {
 				dlg.arrangeWork(taskList, taskInfo, TaskType.TASK_CROP,
 						lastPath, null, false, false, 0, maxw, maxh);
-			}
-			else {
+			} else {
 				BatchTask batch = new BatchTask();
 				batch.setTask(taskList, taskInfo);
-	
 				dlg.setMax(taskList.size());
 				dlg.setBatchTask(batch, TaskType.TASK_CROP,
 						lastPath, null, false, false, 0, maxw, maxh);
@@ -840,11 +839,9 @@ public class ComicCrop extends JFrame {
 			if (useMultiThreads(taskList.size())) {
 				dlg.arrangeWork(taskList, taskInfo, TaskType.TASK_CROP_SCALE,
 						lastPath, null, false, false, 0, maxw, maxh);
-			}
-			else {
+			} else {
 				BatchTask batch = new BatchTask();
 				batch.setTask(taskList, taskInfo);
-	
 				dlg.setMax(taskList.size());
 				dlg.setBatchTask(batch, TaskType.TASK_CROP_SCALE,
 						lastPath, null, false, false, 0, maxw, maxh);
@@ -867,11 +864,9 @@ public class ComicCrop extends JFrame {
 			if (useMultiThreads(taskList.size())) {
 				dlg.arrangeWork(taskList, taskInfo, TaskType.TASK_CROP_SCALE_WIDTH,
 						lastPath, null, false, false, 0, maxw, maxh);
-			}
-			else {
+			} else {
 				BatchTask batch = new BatchTask();
 				batch.setTask(taskList, taskInfo);
-	
 				dlg.setMax(taskList.size());
 				dlg.setBatchTask(batch, TaskType.TASK_CROP_SCALE_WIDTH,
 						lastPath, null, false, false, 0, maxw, maxh);

@@ -55,6 +55,7 @@ public class StringResources {
     public static final String BUTTON_SAVE = "Save";
     public static final String BUTTON_CANCEL = "Cancel";
 
+    public static final String STR_IMAGE_FILES = "Image Files";
     public static final String STR_COMIC_FILES = "Comic Files";
 
     public static final String PARAM_SUBTITLE_EXT_NAME = ".st";
