@@ -36,8 +36,9 @@ import com.migrsoft.main.ProgressDlg.TaskType;
 public class ComicCrop extends JFrame {
 
 	private MenuBarInViewMode viewModeMenuBar;
+	private MenuBarInEditMode editModeMenuBar;
 	
-	private PicEditor mEditor;
+	private PicEditor editor;
 	private PicViewer viewer;
 	private PicList list;
 	private Dashboard mBoard;
@@ -60,10 +61,11 @@ public class ComicCrop extends JFrame {
 		});
 
 		createViewModeMenu();
-		setJMenuBar(viewModeMenuBar.getMenuBar());
+		createEditModeMenu();
+		setJMenuBar(editModeMenuBar.getMenuBar());
 		
 		createContent();
-		
+
 		Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
 		
 		setSize((int)(screen.getWidth() * 0.9f), (int)(screen.getHeight() * 0.9f));
@@ -73,7 +75,7 @@ public class ComicCrop extends JFrame {
 	}
 
 	private void createViewModeMenu() {
-		MenuBarInViewMode.Callback viewModeMenuCB = new MenuBarInViewMode.Callback() {
+		MenuBarInViewMode.Callback cb = new MenuBarInViewMode.Callback() {
 			@Override
 			public void onFileOpen() {
 				openFile();
@@ -95,20 +97,8 @@ public class ComicCrop extends JFrame {
 			}
 
 			@Override
-			public void onSubtitleOff() {
-				MainParam.getInstance().setSubtitleSwitch(PicWorkerParam.SubtitleSwitch.Off);
-				repaint();
-			}
-
-			@Override
-			public void onSubtitleOrigin() {
-				MainParam.getInstance().setSubtitleSwitch(PicWorkerParam.SubtitleSwitch.Original);
-				repaint();
-			}
-
-			@Override
-			public void onSubtitleChinese() {
-				MainParam.getInstance().setSubtitleSwitch(PicWorkerParam.SubtitleSwitch.Chinese);
+			public void onSubtitle(PicWorkerParam.SubtitleSwitch value) {
+				MainParam.getInstance().setSubtitleSwitch(value);
 				repaint();
 			}
 
@@ -134,14 +124,92 @@ public class ComicCrop extends JFrame {
 			}
 		};
 
-		viewModeMenuBar = new MenuBarInViewMode(viewModeMenuCB);
+		viewModeMenuBar = new MenuBarInViewMode(cb);
 	}
-	
-	private final String menuFileResize = "窗口大小锁定";
-	private final String menuFileReadTask = "读取任务";
-	private final String menuFileSaveTask = "保存任务";
-	private final String menuFileTest = "测试";
-	
+
+	private void createEditModeMenu() {
+		MenuBarInEditMode.Callback cb = new MenuBarInEditMode.Callback() {
+			@Override
+			public void onFileOpen() {
+				openFile();
+			}
+
+			@Override
+			public void onFileOpenComic() {
+				openComic();
+			}
+
+			@Override
+			public boolean isLockWindowSize() {
+				return isResizable();
+			}
+
+			@Override
+			public void onLockWindowSize() {
+				lockWindow();
+			}
+
+			@Override
+			public void onLoadTask() {
+				readTasks();
+			}
+
+			@Override
+			public void onSaveTask() {
+				saveTasks();
+			}
+
+			@Override
+			public void onToGrayscale() {
+				editor.toGrayMode();
+			}
+
+			@Override
+			public void onForceGrayCalc(boolean checked) {
+				MainParam.getInstance().setForceGray(checked);
+				editor.reload();
+			}
+
+			@Override
+			public void onAutoGrayCalc(boolean checked) {
+				MainParam.getInstance().setAutoGrayLevel(checked);
+				editor.reload();
+			}
+
+			@Override
+			public PicWorkerParam.ImageFormat getImageFormat() {
+				return MainParam.getInstance().getImageFormat();
+			}
+
+			@Override
+			public void onImageFormat(PicWorkerParam.ImageFormat format) {
+				MainParam.getInstance().setImageFormat(format);
+			}
+
+			@Override
+			public boolean isCutWhiteEdge() {
+				return false;
+			}
+
+			@Override
+			public void onCutWhiteEdge(boolean value) {
+
+			}
+
+			@Override
+			public int getImageSize() {
+				return 800;
+			}
+
+			@Override
+			public void onImageSize(int width, int height) {
+
+			}
+		};
+
+		editModeMenuBar = new MenuBarInEditMode(cb);
+	}
+
 	private final String menuPicToGray = "转换为灰度图";
 	private final String menuPicForceGray = "强制计算灰阶";
 	private final String menuPicAutoGrayLevel = "自动计算灰阶";
@@ -187,35 +255,18 @@ public class ComicCrop extends JFrame {
 			public void actionPerformed(ActionEvent event) {
 				String cmd = event.getActionCommand();
 				
-				if (cmd.equals(StringResources.MENU_FILE_OPEN)) {
-					openFile();
-				}
-				else if (cmd.equals(StringResources.MENU_FILE_OPEN_COMIC)) {
-					openComic();
-				}
-				else if (cmd.equals(menuFileResize)) {
-					resizeWindow();
-				}
-				else if (cmd.equals(menuFileReadTask)) {
-					readTasks();
-				}
-				else if (cmd.equals(menuFileSaveTask)) {
-					saveTasks();
-				}
-				else if (cmd.equals(menuFileTest)) {
-				}
-				else if (cmd.equals(menuPicToGray)) {
-					mEditor.toGrayMode();
+				if (cmd.equals(menuPicToGray)) {
+					editor.toGrayMode();
 				}
 				else if (cmd.equals(menuPicForceGray)) {
 					JCheckBoxMenuItem item = (JCheckBoxMenuItem)event.getSource();
 					MainParam.getInstance().setForceGray(item.isSelected());
-					mEditor.reload();
+					editor.reload();
 				}
 				else if (cmd.equals(menuPicAutoGrayLevel)) {
 					JCheckBoxMenuItem item = (JCheckBoxMenuItem)event.getSource();
 					MainParam.getInstance().setAutoGrayLevel(item.isSelected());
-					mEditor.reload();
+					editor.reload();
 				}
 				else if (cmd.equals(menuPicOutputPng)) {
 					JRadioButtonMenuItem item = (JRadioButtonMenuItem)event.getSource();
@@ -236,13 +287,13 @@ public class ComicCrop extends JFrame {
 					JRadioButtonMenuItem item = (JRadioButtonMenuItem)event.getSource();
 					if (item.isSelected())
 						MainParam.getInstance().setCropWhite(true);
-					mEditor.reload();
+					editor.reload();
 				}
 				else if (cmd.equals(menuPicCropBlack)) {
 					JRadioButtonMenuItem item = (JRadioButtonMenuItem)event.getSource();
 					if (item.isSelected())
 						MainParam.getInstance().setCropWhite(false);
-					mEditor.reload();
+					editor.reload();
 				}
 				else if (cmd.equals(menuPicSize480)) {
 					MainParam.getInstance().setMaxWidth(480);
@@ -307,37 +358,6 @@ public class ComicCrop extends JFrame {
 				}
 			}
 		};
-		
-		////////////////////////////////////////////////////////////
-		
-		JMenu file = new JMenu(StringResources.MENU_FILE);
-		editMenubar.add(file);
-		
-		JMenuItem file_open = new JMenuItem(StringResources.MENU_FILE_OPEN);
-		file_open.addActionListener(menuHandler);
-
-		JMenuItem file_open_comic = new JMenuItem(StringResources.MENU_FILE_OPEN_COMIC);
-		file_open_comic.addActionListener(menuHandler);
-
-		JMenuItem file_resize = new JMenuItem(menuFileResize);
-		file_resize.addActionListener(menuHandler);
-		
-		JMenuItem file_read_task = new JMenuItem(menuFileReadTask);
-		file_read_task.addActionListener(menuHandler);
-		
-		JMenuItem file_save_task = new JMenuItem(menuFileSaveTask);
-		file_save_task.addActionListener(menuHandler);
-
-		JMenuItem file_test = new JMenuItem(menuFileTest);
-		file_test.addActionListener(menuHandler);
-		
-		file.add(file_open);
-		file.add(file_open_comic);
-		file.addSeparator();
-		file.add(file_resize);
-		file.addSeparator();
-		file.add(file_read_task);
-		file.add(file_save_task);
 
 		////////////////////////////////////////////////////////////
 		
@@ -522,8 +542,8 @@ public class ComicCrop extends JFrame {
 	
 	private void createContent() {
 		
-		mEditor = new PicEditor();
-		mEditor.setActListener(new PicEditor.ActListener() {
+		editor = new PicEditor();
+		editor.setActListener(new PicEditor.ActListener() {
 			
 			@Override
 			public void loadPrevItem() {
@@ -592,7 +612,7 @@ public class ComicCrop extends JFrame {
 				if (zipFile != null) {
 					viewer.load(name);
 				} else {
-					mEditor.load(lastPath + name);
+					editor.load(lastPath + name);
 				}
 			}
 
@@ -613,35 +633,35 @@ public class ComicCrop extends JFrame {
 			}
 		});
 		
-		mBoard = new Dashboard(mEditor.isCropMode());
-		mBoard.setHorizontalSplit(mEditor.isHorizonalSplit());
-		mBoard.setSplitNum(mEditor.getSplitNum());
-		mBoard.setLeftToRight(mEditor.isLeftToRight());
+		mBoard = new Dashboard(editor.isCropMode());
+		mBoard.setHorizontalSplit(editor.isHorizonalSplit());
+		mBoard.setSplitNum(editor.getSplitNum());
+		mBoard.setLeftToRight(editor.isLeftToRight());
 		mBoard.setActListener(new Dashboard.ActListener() {
 			
 			@Override
 			public void onClockwise(boolean ctrlPressed) {
-				mEditor.rotate(true, ctrlPressed);
+				editor.rotate(true, ctrlPressed);
 			}
 			
 			@Override
 			public void onAntiClockwise(boolean ctrlPressed) {
-				mEditor.rotate(false, ctrlPressed);
+				editor.rotate(false, ctrlPressed);
 			}
 
 			@Override
 			public void onSave() {
-				mEditor.save(null);
+				editor.save(null);
 			}
 
 			@Override
 			public void onScale() {
-				mEditor.scale(false);
+				editor.scale(false);
 			}
 
 			@Override
 			public void onScaleWidth() {
-				mEditor.scale(true);
+				editor.scale(true);
 			}
 
 			@Override
@@ -649,52 +669,50 @@ public class ComicCrop extends JFrame {
 				boolean hori = mBoard.isHorizontalSplit();
 				boolean ltor = mBoard.isLeftToRight();
 				int num = mBoard.getSplitNum();
-				mEditor.setSplitInfo(hori, num, ltor);
+				editor.setSplitInfo(hori, num, ltor);
 			}
 
 			@Override
 			public void onModeChanged(boolean isCrop) {
 				if (isCrop)
-					mEditor.useCropMode();
+					editor.useCropMode();
 				else
-					mEditor.useSplitMode();
+					editor.useSplitMode();
 			}
 
 			@Override
 			public void onSplit() {
-				mEditor.split();
+				editor.split();
 			}
 
 			@Override
 			public void onCalcCrop() {
-				mEditor.calcCrop();
+				editor.calcCrop();
 			}
 
 			@Override
 			public void onCrop() {
-				mEditor.crop();
+				editor.crop();
 			}
 
 			@Override
 			public void onCropChanged(boolean isWhite, boolean isAll) {
-				mEditor.cropChanged(isWhite, isAll);
+				editor.cropChanged(isWhite, isAll);
 			}
 
 			@Override
 			public void onGrowArea() {
-				mEditor.growArea(10);
+				editor.growArea(10);
 			}
 
 			@Override
 			public void onGrowAreaSlightly() {
-				mEditor.growArea(2);
+				editor.growArea(2);
 			}
 		});
 		
 		Container contentPane = getContentPane();
-		contentPane.add(mEditor, BorderLayout.CENTER);
 		contentPane.add(list.getPane(), BorderLayout.WEST);
-		contentPane.add(mBoard, BorderLayout.EAST);
 	}
 	
 	private void updateTitle() {
@@ -720,12 +738,12 @@ public class ComicCrop extends JFrame {
 	private void switchUI(boolean viewMode) {
 		Container container = getContentPane();
 		if (viewMode) {
-			container.remove(mEditor);
+			container.remove(editor);
 			container.remove(mBoard);
 			container.add(viewer, BorderLayout.CENTER);
 		} else { // to edit mode
 			container.remove(viewer);
-			container.add(mEditor, BorderLayout.CENTER);
+			container.add(editor, BorderLayout.CENTER);
 			container.add(mBoard, BorderLayout.EAST);
 		}
 		container.revalidate();
@@ -874,10 +892,10 @@ public class ComicCrop extends JFrame {
 		resetEditor();
 		
 		mBoard.useCropMode();
-		mEditor.useCropMode();
+		editor.useCropMode();
 	}
 
-	private void resizeWindow() {
+	private void lockWindow() {
 		boolean b = isResizable();
 		b = !b;
 		setResizable(b);
@@ -898,7 +916,7 @@ public class ComicCrop extends JFrame {
 			os.close();
 			if (tasks instanceof HashMap<?, ?>) {
 				taskInfo = (HashMap<String, TaskData>)tasks;
-				mEditor.reload();
+				editor.reload();
 			}
 		} catch (Exception e) {
 			System.out.println(e.getMessage());
@@ -914,7 +932,7 @@ public class ComicCrop extends JFrame {
 				"保存确认", JOptionPane.YES_NO_OPTION) == JOptionPane.NO_OPTION)
 			return;
 		
-		mEditor.saveTaskData();
+		editor.saveTaskData();
 		try {
 			FileOutputStream fs = new FileOutputStream(TASK_FILE_NAME);
 			ObjectOutputStream os = new ObjectOutputStream(fs);
@@ -963,16 +981,16 @@ public class ComicCrop extends JFrame {
 	private void batchSplitWork() {
 		Vector<String> taskList = list.getList();
 		if (!taskList.isEmpty()) {
-			mEditor.saveTaskData();
+			editor.saveTaskData();
 			
-			clearTempDir(lastPath + mEditor.getSaveDir());
+			clearTempDir(lastPath + editor.getSaveDir());
 			
 			ProgressDlg dlg = new ProgressDlg(this);
 			
 			if (useMultiThreads(taskList.size())) {
 				dlg.arrangeWork(taskList, taskInfo, TaskType.TASK_SPLIT,
-						lastPath, mEditor.getSaveDir(),
-						mEditor.isHorizonalSplit(), mEditor.isLeftToRight(), mEditor.getSplitNum(),
+						lastPath, editor.getSaveDir(),
+						editor.isHorizonalSplit(), editor.isLeftToRight(), editor.getSplitNum(),
 						0, 0);
 			}
 			else {
@@ -981,8 +999,8 @@ public class ComicCrop extends JFrame {
 				
 				dlg.setMax(taskList.size());
 				dlg.setBatchTask(batch, TaskType.TASK_SPLIT,
-						lastPath, mEditor.getSaveDir(),
-						mEditor.isHorizonalSplit(), mEditor.isLeftToRight(), mEditor.getSplitNum(),
+						lastPath, editor.getSaveDir(),
+						editor.isHorizonalSplit(), editor.isLeftToRight(), editor.getSplitNum(),
 						0, 0);
 			}
 			
@@ -1054,7 +1072,7 @@ public class ComicCrop extends JFrame {
 	private void batchCropWork() {
 		Vector<String> taskList = list.getList();
 		if (!taskList.isEmpty()) {
-			mEditor.saveTaskData();
+			editor.saveTaskData();
 			
 			ProgressDlg dlg = new ProgressDlg(this);
 			int maxw = MainParam.getInstance().getMaxWidth();
@@ -1081,7 +1099,7 @@ public class ComicCrop extends JFrame {
 	private void batchCropAndScaleWork() {
 		Vector<String> taskList = list.getList();
 		if (!taskList.isEmpty()) {
-			mEditor.saveTaskData();
+			editor.saveTaskData();
 			
 			ProgressDlg dlg = new ProgressDlg(this);
 			int maxw = MainParam.getInstance().getMaxWidth();
@@ -1108,7 +1126,7 @@ public class ComicCrop extends JFrame {
 	private void batchCropAndScaleWidthWork() {
 		Vector<String> taskList = list.getList();
 		if (!taskList.isEmpty()) {
-			mEditor.saveTaskData();
+			editor.saveTaskData();
 			
 			ProgressDlg dlg = new ProgressDlg(this);
 			int maxw = MainParam.getInstance().getMaxWidth();
@@ -1154,8 +1172,8 @@ public class ComicCrop extends JFrame {
 	}
 	
 	public void resetEditor() {
-		mEditor.reset();
-		mEditor.repaint();
+		editor.reset();
+		editor.repaint();
 	}
 	
 	static private ComicCrop sInstance = null;

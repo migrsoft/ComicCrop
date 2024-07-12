@@ -12,6 +12,9 @@ public class StringResources {
     public static final String MENU_FILE_OPEN = "Open Images";
     public static final String MENU_FILE_OPEN_COMIC = "Open Comic";
     public static final String MENU_FILE_SAVE_SUBTITLE = "Save Subtitles";
+    public static final String MENU_FILE_LOCK_WIN_SIZE = "Lock Window Size";
+    public static final String MENU_FILE_LOAD_TASK = "Load Task";
+    public static final String MENU_FILE_SAVE_TASK = "Save Task";
 
     public static final String MENU_IMAGE = "Image";
     public static final String MENU_SUBTITLE_NO = "No Subtitle";
@@ -19,6 +22,17 @@ public class StringResources {
     public static final String MENU_SUBTITLE_CHINESE = "Chinese Subtitles";
     public static final String MENU_PAGE_SPACING = "Page Spacing";
     public static final String MENU_PAGE_NUMBER = "Page Number";
+    public static final String MENU_TO_GRAYSCALE = "Convert to Grayscale";
+    public static final String MENU_FORCE_GRAY_CALC = "Force Grayscale Calculation";
+    public static final String MENU_AUTO_GRAY_CALC = "Automatically Grayscale Calculation";
+    public static final String MENU_FORMAT_PNG = "Output PNG Format";
+    public static final String MENU_FORMAT_JPG = "Output JPEG Format";
+    public static final String MENU_FORMAT_WEBP= "Output WEBP Format";
+    public static final String MENU_CUT_WHITE_EDGE = "Cut White Edge";
+    public static final String MENU_CUT_BLACK_EDGE = "Cut Black Edge";
+    public static final String MENU_PIC_SIZE_480 = "480 x 800";
+    public static final String MENU_PIC_SIZE_600 = "600 x 1000";
+    public static final String MENU_PIC_SIZE_800 = "800 x 1280";
 
     public static final String MENU_POP_CREATE = "Create Subtitle";
     public static final String MENU_POP_DELETE = "Delete Subtitle";

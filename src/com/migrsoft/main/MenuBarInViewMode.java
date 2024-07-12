@@ -14,9 +14,7 @@ public class MenuBarInViewMode {
         void onFileSaveSubtitle();
 
         PicWorkerParam.SubtitleSwitch getSubtitleSwitch();
-        void onSubtitleOff();
-        void onSubtitleOrigin();
-        void onSubtitleChinese();
+        void onSubtitle(PicWorkerParam.SubtitleSwitch value);
 
         boolean getPageSpacingSwitch();
         void setSpacingSwitch(boolean value);
@@ -29,7 +27,6 @@ public class MenuBarInViewMode {
 
     public MenuBarInViewMode(Callback cb) {
         assert cb != null;
-
         bar = new JMenuBar();
 
         ActionListener handler = new ActionListener() {
@@ -38,37 +35,15 @@ public class MenuBarInViewMode {
                 String cmd = e.getActionCommand();
                 switch (cmd) {
                     case StringResources.MENU_FILE_OPEN -> cb.onFileOpen();
-
                     case StringResources.MENU_FILE_OPEN_COMIC -> cb.onFileOpenComic();
-
                     case StringResources.MENU_FILE_SAVE_SUBTITLE -> cb.onFileSaveSubtitle();
-
-                    case StringResources.MENU_SUBTITLE_NO -> {
-                        JRadioButtonMenuItem item = (JRadioButtonMenuItem) e.getSource();
-                        if (item.isSelected()) {
-                            cb.onSubtitleOff();
-                        }
-                    }
-
-                    case StringResources.MENU_SUBTITLE_ORIGIN -> {
-                        JRadioButtonMenuItem item = (JRadioButtonMenuItem) e.getSource();
-                        if (item.isSelected()) {
-                            cb.onSubtitleOrigin();
-                        }
-                    }
-
-                    case StringResources.MENU_SUBTITLE_CHINESE -> {
-                        JRadioButtonMenuItem item = (JRadioButtonMenuItem) e.getSource();
-                        if (item.isSelected()) {
-                            cb.onSubtitleChinese();
-                        }
-                    }
-
+                    case StringResources.MENU_SUBTITLE_NO -> cb.onSubtitle(PicWorkerParam.SubtitleSwitch.Off);
+                    case StringResources.MENU_SUBTITLE_ORIGIN -> cb.onSubtitle(PicWorkerParam.SubtitleSwitch.Original);
+                    case StringResources.MENU_SUBTITLE_CHINESE -> cb.onSubtitle(PicWorkerParam.SubtitleSwitch.Chinese);
                     case StringResources.MENU_PAGE_SPACING -> {
                         JCheckBoxMenuItem item = (JCheckBoxMenuItem) e.getSource();
                         cb.setSpacingSwitch(item.isSelected());
                     }
-
                     case StringResources.MENU_PAGE_NUMBER -> {
                         JCheckBoxMenuItem item = (JCheckBoxMenuItem) e.getSource();
                         cb.setPageNumberSwitch(item.isSelected());
