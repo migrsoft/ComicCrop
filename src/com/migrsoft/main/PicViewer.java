@@ -250,6 +250,7 @@ public class PicViewer extends JPanel
             try {
                 BufferedImage image = get();
                 if (image != null) {
+                    int y = viewPort.y;
                     viewPort.y += longImage.addImage(image, index, name, atLast);
                 }
             } catch (Exception e) {

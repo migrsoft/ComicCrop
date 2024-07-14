@@ -78,7 +78,7 @@ public class LongImage {
     }
 
     // 当图片变化时，视图 Y 的增减量
-    private int adjustedY = 0;
+    private int adjustedY;
 
     // 在头部或尾部追加图片
     public int addImage(BufferedImage image, int index, String name, boolean last) {
@@ -88,6 +88,7 @@ public class LongImage {
         ii.name = name;
         if (last) {
             imageList.addLast(ii);
+            adjustedY = 0;
         } else {
             imageList.addFirst(ii);
             adjustedY = ii.image.getHeight();
