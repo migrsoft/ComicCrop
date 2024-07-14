@@ -440,7 +440,7 @@ public class ComicCrop extends JFrame {
 	private void updateTitle() {
 		int index = list.getSelectedIndex() + 1;
 		int total = list.getTotal();
-		setTitle(StringResources.APP_TITLE + " " + index + " | " + total);
+		setTitle(StringResources.APP_TITLE + " <" + fileName + "> " + index + " | " + total);
 	}
 	
 	private HashMap<String, TaskData> taskInfo = null;
@@ -519,6 +519,7 @@ public class ComicCrop extends JFrame {
 			int nameLen = fl[0].getName().length();
 			
 			lastPath = fl[0].getPath().substring(0, pathLen - nameLen);
+			fileName = "";
 			Vector<String> taskList = new Vector<String>();
 			taskInfo = new HashMap<String, TaskData>();
 			
@@ -528,6 +529,7 @@ public class ComicCrop extends JFrame {
 
 			taskList.sort(new SortByName());
 			list.update(taskList);
+			updateTitle();
 
 			resetEditor();
 		}
@@ -591,6 +593,7 @@ public class ComicCrop extends JFrame {
 
 			taskList.sort(new SortByName());
 			list.update(taskList);
+			updateTitle();
 
 			viewer.reset();
 			viewer.loadSubtitles();
