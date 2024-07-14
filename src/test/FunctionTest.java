@@ -1,5 +1,6 @@
 package test;
 
+import com.migrsoft.utils.Info;
 import org.junit.jupiter.api.Test;
 
 import java.awt.*;
@@ -18,5 +19,10 @@ public class FunctionTest {
         for (String fontName : fontNames) {
             System.out.println(fontName);
         }
+    }
+
+    @Test
+    public void getInfo() {
+        System.out.println(Info.getOsType());
     }
 }

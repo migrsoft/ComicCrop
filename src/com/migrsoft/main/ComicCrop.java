@@ -906,9 +906,9 @@ public class ComicCrop extends JFrame {
 		editor.repaint();
 	}
 	
-	static private ComicCrop instance = null;
+	private static ComicCrop instance = null;
 	
-	static public ComicCrop getInstance() {
+	public static ComicCrop getInstance() {
 		return instance;
 	}
 
@@ -916,6 +916,7 @@ public class ComicCrop extends JFrame {
 
 		Runnable r = new Runnable() {
 			public void run() {
+				Config.getInstance().load();
 				instance = new ComicCrop();
 			}
 		};

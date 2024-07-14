@@ -1,5 +1,6 @@
 package com.migrsoft.image;
 
+import com.migrsoft.main.Config;
 import net.sourceforge.tess4j.ITesseract;
 import net.sourceforge.tess4j.Tesseract;
 import net.sourceforge.tess4j.TesseractException;
@@ -9,9 +10,14 @@ import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 
 public class TesserOCR {
-    static public String ocr(BufferedImage image, Rectangle rect) {
-        ITesseract instance = new Tesseract();
-        instance.setDatapath("/usr/local/Cellar/tesseract/5.4.1/share/tessdata/");
+
+    private static ITesseract instance = null;
+
+    public static String ocr(BufferedImage image, Rectangle rect) {
+        if (instance == null) {
+            instance = new Tesseract();
+        }
+        instance.setDatapath(Config.getInstance().getTesserOcrDataPath());
         ArrayList<Rectangle> rects = new ArrayList<>();
         rects.add(rect);
         try {

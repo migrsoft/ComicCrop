@@ -11,7 +11,7 @@ public class EditDlg extends JDialog {
     private final JTextArea originalText;
     private final JTextArea translatedText;
 
-    private final Translator translator = new Translator("f2b30731-e1e5-4f94-89c5-d852507769e2:fx");
+    private final Translator translator;
 
     public interface Callback {
         void onSave();
@@ -28,6 +28,8 @@ public class EditDlg extends JDialog {
 
         setSize(400, 300);
         setLayout(new BorderLayout());
+
+        translator = new Translator(Config.getInstance().getDeepLApiKey());
 
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
