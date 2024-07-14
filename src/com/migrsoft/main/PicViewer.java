@@ -63,7 +63,9 @@ public class PicViewer extends JPanel
                         initialClick = e.getPoint();
                         setCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR));
                     } else {
-                        handleClickSubtitles(e.getPoint());
+                        if (!handleClickSubtitles(e.getPoint())) {
+                            currentMode = Mode.View;
+                        }
                     }
                     repaint();
                 }
@@ -185,7 +187,8 @@ public class PicViewer extends JPanel
         }
     }
 
-    private void handleClickSubtitles(Point pos) {
+    private boolean handleClickSubtitles(Point pos) {
+        boolean handled = false;
         saveSelectedSubtitles();
         currentImageItem = longImage.getSelectedImage(pos.y + viewPort.y);
         SubtitleItem si = longImage.getSubtitleByPos(currentImageItem, pos.x, pos.y, viewPort);
@@ -195,9 +198,11 @@ public class PicViewer extends JPanel
             currentMode = Mode.Edit;
             initialClick = pos;
             detector = new EdgeDetect(selectBox.rect);
+            handled = true;
         } else {
             detector = null;
         }
+        return handled;
     }
 
     public interface PicViewerCallback {
