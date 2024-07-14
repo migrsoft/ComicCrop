@@ -17,6 +17,8 @@ public class PicViewer extends JPanel
         Create,
         Edit,
         EditDlg,
+        Move,
+        Resize,
     }
 
     private Mode currentMode = Mode.View;
@@ -27,72 +29,73 @@ public class PicViewer extends JPanel
     @Override
     public void mouseClicked(MouseEvent e) {
         if (e.getButton() == MouseEvent.BUTTON3) {
-            mPopMenu.show(e.getComponent(), e.getX(), e.getY());
+            popMenu.show(e.getComponent(), e.getX(), e.getY());
         }
-    }
-
-    private void saveSubtitle() {
-        if (selectBox.isModified()) {
-            longImage.addSubtitle(currentImageItem, selectBox.takeSubtitle(), viewPort);
-        }
-        selectBox.initialize();
     }
 
     private Point initialClick;
 
+    private EdgeDetect detector;
+
+    private EdgeDetect.Edge selectedEdge = EdgeDetect.Edge.None;
+
     @Override
     public void mousePressed(MouseEvent e) {
         if (e.getButton() == MouseEvent.BUTTON1) {
-            boolean repaint = false;
             initialClick = null;
             switch (currentMode) {
-                case View:
-                case Edit:
-                    if (selectBox.contains(e.getX(), e.getY())) {
-                        currentMode = Mode.Edit;
-                        initialClick = e.getPoint();
-                    } else {
-                        saveSubtitle();
-                        currentImageItem = longImage.getSelectedImage(e.getY() + viewPort.y);
-                        SubtitleItem si = longImage.getSubtitleByPos(currentImageItem, e.getX(), e.getY(), viewPort);
-                        if (si == null) {
-                            currentMode = Mode.View;
-                        } else {
-                            selectBox.rect = longImage.rectToView(currentImageItem, si.rect, viewPort);
-                            selectBox.setSubtitle(si);
-                            currentMode = Mode.Edit;
-                        }
-                    }
-                    repaint = true;
-                    break;
-
-                case Create:
-                    saveSubtitle();
+                case View -> {
+                    handleClickSubtitles(e.getPoint());
+                    repaint();
+                }
+                case Create -> {
+                    saveSelectedSubtitles();
                     selectBox.setTopLeft(e.getX(), e.getY());
                     currentImageItem = longImage.getSelectedImage(e.getY() + viewPort.y);
-                    if (currentImageItem != null) {
-                        Rectangle range = currentImageItem.getVisibleRectInViewPort(viewPort);
-                        selectBox.setRange(range.x, range.y, range.width, range.height);
+                    repaint();
+                }
+                case Edit -> {
+                    if (selectedEdge != EdgeDetect.Edge.None) {
+                        currentMode = Mode.Resize;
+                        initialClick = e.getPoint();
+                    } else if (selectBox.contains(e.getX(), e.getY())) {
+                        currentMode = Mode.Move;
+                        initialClick = e.getPoint();
+                        setCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR));
+                    } else {
+                        handleClickSubtitles(e.getPoint());
                     }
-                    repaint = true;
-                    break;
-
-                case EditDlg:
+                    repaint();
+                }
+                case EditDlg -> {
                     if (selectBox.contains(e.getX(), e.getY())) {
                         currentMode = Mode.Edit;
                     } else {
                         currentMode = Mode.View;
                     }
-                    break;
+                }
             }
-            if (repaint) repaint();
         }
     }
 
     @Override
     public void mouseReleased(MouseEvent e) {
-        if (currentMode == Mode.Create) {
-            currentMode = Mode.View;
+        switch (currentMode) {
+            case Create -> {
+                currentMode = Mode.Edit;
+            }
+            case Move -> {
+                currentMode = Mode.Edit;
+                setCursor(Cursor.getDefaultCursor());
+            }
+            case Resize -> {
+                currentMode = Mode.Edit;
+                selectedEdge = EdgeDetect.Edge.None;
+                selectBox.setModified();
+                selectBox.setDisplaySubtitles(true);
+                setCursor(Cursor.getDefaultCursor());
+                repaint();
+            }
         }
     }
 
@@ -107,28 +110,94 @@ public class PicViewer extends JPanel
     @Override
     public void mouseDragged(MouseEvent e) {
         switch (currentMode) {
-            case Create:
+            case Create -> {
                 if (selectBox.dragBottomRight(e.getX(), e.getY())) {
                     repaint();
                 }
-                break;
-
-            case Edit:
+            }
+            case Move -> {
                 if (initialClick != null) {
-                    int xMoved = e.getX() - initialClick.x;
-                    int yMoved = e.getY() - initialClick.y;
-                    int x = selectBox.rect.x + xMoved;
-                    int y = selectBox.rect.y + yMoved;
+                    int dx = e.getX() - initialClick.x;
+                    int dy = e.getY() - initialClick.y;
+                    int x = selectBox.rect.x + dx;
+                    int y = selectBox.rect.y + dy;
                     selectBox.setLocation(x, y);
                     initialClick = e.getPoint();
                     repaint();
                 }
-                break;
+            }
+            case Resize -> {
+                if (initialClick != null) {
+                    int dx = e.getX() - initialClick.x;
+                    int dy = e.getY() - initialClick.y;
+                    EdgeDetect.adjust(selectBox.rect, selectedEdge, dx, dy);
+                    initialClick = e.getPoint();
+                    selectBox.setDisplaySubtitles(false);
+                    repaint();
+                }
+            }
         }
     }
 
     @Override
     public void mouseMoved(MouseEvent e) {
+        switch (currentMode) {
+            case Edit -> {
+                if (detector != null) {
+                    selectedEdge = detector.isOnTheEdge(e.getPoint());
+                    switch (selectedEdge) {
+                        case None -> setCursor(Cursor.getDefaultCursor());
+                        case West -> setCursor(Cursor.getPredefinedCursor(Cursor.W_RESIZE_CURSOR));
+                        case East -> setCursor(Cursor.getPredefinedCursor(Cursor.E_RESIZE_CURSOR));
+                        case North -> setCursor(Cursor.getPredefinedCursor(Cursor.N_RESIZE_CURSOR));
+                        case South -> setCursor(Cursor.getPredefinedCursor(Cursor.S_RESIZE_CURSOR));
+                        case NorthWest -> setCursor(Cursor.getPredefinedCursor(Cursor.NW_RESIZE_CURSOR));
+                        case NorthEast -> setCursor(Cursor.getPredefinedCursor(Cursor.NE_RESIZE_CURSOR));
+                        case SouthWest -> setCursor(Cursor.getPredefinedCursor(Cursor.SW_RESIZE_CURSOR));
+                        case SouthEast -> setCursor(Cursor.getPredefinedCursor(Cursor.SE_RESIZE_CURSOR));
+                    }
+                }
+            }
+        }
+    }
+
+    @Override
+    public void mouseWheelMoved(MouseWheelEvent evt) {
+        if (currentMode == Mode.View && longImage != null) {
+            final int scrollAmount = 20;
+            int amount = evt.getUnitsToScroll() * scrollAmount;
+            viewPort.y += amount;
+            int y = viewPort.y;
+            viewPort.y = Math.max(0, Math.min(viewPort.y, longImage.height - viewPort.height));
+            invalidate();
+            repaint();
+
+            if (y < 0 || y + viewPort.height > longImage.height) {
+                int index = (y < 0)
+                        ? longImage.getIndexAtFirst() - 1
+                        : longImage.getIndexAtLast() + 1;
+                String name = cb.getNameByIndex(index);
+                if (lastLoaded != index && !name.isEmpty()) {
+                    lastLoaded = index;
+                    new ImageLoaderWorker(cb.getZip(), name, index, y > 0).execute();
+                }
+            }
+        }
+    }
+
+    private void handleClickSubtitles(Point pos) {
+        saveSelectedSubtitles();
+        currentImageItem = longImage.getSelectedImage(pos.y + viewPort.y);
+        SubtitleItem si = longImage.getSubtitleByPos(currentImageItem, pos.x, pos.y, viewPort);
+        if (si != null) {
+            selectBox.rect = longImage.rectToView(currentImageItem, si.rect, viewPort);
+            selectBox.setSubtitle(si);
+            currentMode = Mode.Edit;
+            initialClick = pos;
+            detector = new EdgeDetect(selectBox.rect);
+        } else {
+            detector = null;
+        }
     }
 
     public interface PicViewerCallback {
@@ -184,7 +253,7 @@ public class PicViewer extends JPanel
         }
     }
 
-    private JPopupMenu mPopMenu;
+    private JPopupMenu popMenu;
 
     PicViewer() {
         addMouseListener(this);
@@ -207,7 +276,7 @@ public class PicViewer extends JPanel
             }
         };
 
-        mPopMenu = new JPopupMenu();
+        popMenu = new JPopupMenu();
         JMenuItem menuCreate = new JMenuItem(StringResources.MENU_POP_CREATE);
         JMenuItem menuDelete = new JMenuItem(StringResources.MENU_POP_DELETE);
         JMenuItem menuOcr = new JMenuItem(StringResources.MENU_POP_OCR);
@@ -216,10 +285,10 @@ public class PicViewer extends JPanel
         menuDelete.addActionListener(popMenuHandler);
         menuOcr.addActionListener(popMenuHandler);
         menuEdit.addActionListener(popMenuHandler);
-        mPopMenu.add(menuCreate);
-        mPopMenu.add(menuDelete);
-        mPopMenu.add(menuOcr);
-        mPopMenu.add(menuEdit);
+        popMenu.add(menuCreate);
+        popMenu.add(menuDelete);
+        popMenu.add(menuOcr);
+        popMenu.add(menuEdit);
     }
 
     private void onPopMenuDelete() {
@@ -267,30 +336,6 @@ public class PicViewer extends JPanel
     }
 
     @Override
-    public void mouseWheelMoved(MouseWheelEvent evt) {
-        if (currentMode == Mode.View && longImage != null) {
-            final int scrollAmount = 20;
-            int amount = evt.getUnitsToScroll() * scrollAmount;
-            viewPort.y += amount;
-            int y = viewPort.y;
-            viewPort.y = Math.max(0, Math.min(viewPort.y, longImage.height - viewPort.height));
-            invalidate();
-            repaint();
-
-            if (y < 0 || y + viewPort.height > longImage.height) {
-                int index = (y < 0)
-                        ? longImage.getIndexAtFirst() - 1
-                        : longImage.getIndexAtLast() + 1;
-                String name = cb.getNameByIndex(index);
-                if (lastLoaded != index && !name.isEmpty()) {
-                    lastLoaded = index;
-                    new ImageLoaderWorker(cb.getZip(), name, index, y > 0).execute();
-                }
-            }
-        }
-    }
-
-    @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
 
@@ -322,7 +367,7 @@ public class PicViewer extends JPanel
     /*
      * 打开指定的图片
      */
-    public void load(String name) {
+    public void loadImage(String name) {
         assert cb != null;
 
         if (cb.getCurrentIndex() == longImage.getCurrentIndex()) {
@@ -339,6 +384,13 @@ public class PicViewer extends JPanel
 
         invalidate();
         repaint();
+    }
+
+    private void saveSelectedSubtitles() {
+        if (selectBox.isModified()) {
+            longImage.addSubtitle(currentImageItem, selectBox.takeSubtitle(), viewPort);
+        }
+        selectBox.initialize();
     }
 
     public void saveSubtitles() {

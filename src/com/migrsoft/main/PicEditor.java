@@ -394,11 +394,7 @@ public class PicEditor extends JPanel {
 	final static int SENSE_TOP_SIDE = 1;
 	final static int SENSE_RIGHT_SIDE = 2;
 	final static int SENSE_BOTTOM_SIDE = 3;
-	final static int SENSE_TOPLEFT_CORNER = 4;
-	final static int SENSE_TOPRIGHT_CORNER = 5;
-	final static int SENSE_BOTTOMLEFT_CORNER = 6;
-	final static int SENSE_BOTTOMRIGHT_CORNER = 7;
-	
+
 	// 创建剪裁区域感应区
 	private void createCropEdge() {
 		if (mImage == null)
@@ -597,13 +593,10 @@ public class PicEditor extends JPanel {
 		float angle = (clockwise) ? da : -da;
 		mAngle += angle;
 		
-		BufferedImage tmp = PicWorker.rotate(mImage, angle);
-		if (tmp != null) {
-			mImage = tmp;
-			calcPosition(false);
-			mModified = true;
-			repaint();
-		}
+		mImage = PicWorker.rotate(mImage, angle);
+		calcPosition(false);
+		mModified = true;
+		repaint();
 	}
 	
 	/**
@@ -630,9 +623,7 @@ public class PicEditor extends JPanel {
 		}
 	}
 
-	private final int SPACING = 10;
-	
-	private void calcPosition(boolean first) {
+    private void calcPosition(boolean first) {
 
 		TaskData td = null;
 		if (first) {
@@ -662,7 +653,8 @@ public class PicEditor extends JPanel {
 		}
 
 		// 计算显示大小与实际大小的缩放率
-		double vw = getWidth() - SPACING;
+        int SPACING = 10;
+        double vw = getWidth() - SPACING;
 		double vh = getHeight() - SPACING;
 		double ws = vw / mImage.getWidth();
 		double hs = vh / mImage.getHeight();

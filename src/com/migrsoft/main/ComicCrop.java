@@ -332,7 +332,7 @@ public class ComicCrop extends JFrame {
 			public void onSelect(String name) {
 				updateTitle();
 				if (zipFile != null) {
-					viewer.load(name);
+					viewer.loadImage(name);
 				} else {
 					editor.load(lastPath + name);
 				}

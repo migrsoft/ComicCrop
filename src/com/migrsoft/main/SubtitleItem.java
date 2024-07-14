@@ -21,6 +21,11 @@ public class SubtitleItem {
         paraTranslated = new Paragraph();
     }
 
+    public void needLayout() {
+        originalTextFontSize = -1;
+        translatedTextFontSize = -1;
+    }
+
     public void paintOriginalText(Graphics g, Rectangle rect) {
         if (!originalText.isEmpty()) {
             paraOriginal.setText(originalText);

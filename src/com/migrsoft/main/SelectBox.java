@@ -7,7 +7,6 @@ public class SelectBox {
     public static final int MINI_SIDE = 20;
 
     public Rectangle rect;
-    public final Rectangle range;
 
     private SubtitleItem subtitle;
 
@@ -15,9 +14,10 @@ public class SelectBox {
 
     private boolean attached = false;
 
+    private boolean displaySubtitles = true;
+
     public SelectBox() {
         rect = new Rectangle();
-        range = new Rectangle();
     }
 
     public void initialize() {
@@ -47,10 +47,6 @@ public class SelectBox {
     public void setLocation(int x, int y) {
         rect.setLocation(x, y);
         modified = true;
-    }
-
-    public void setRange(int x, int y, int width, int height) {
-        range.setBounds(x, y, width, height);
     }
 
     public SubtitleItem getSubtitle() {
@@ -97,9 +93,15 @@ public class SelectBox {
         return modified;
     }
 
+    public void setModified() {
+        modified = true;
+        if (subtitle != null) {
+            subtitle.needLayout();
+        }
+    }
+
     public void empty() {
         rect.setBounds(0, 0, 0, 0);
-        range.setBounds(0, 0, 0, 0);
     }
 
     public boolean dragBottomRight(int x, int y) {
@@ -125,14 +127,16 @@ public class SelectBox {
         return rect.contains(x, y);
     }
 
+    public void setDisplaySubtitles(boolean value) {
+        displaySubtitles = value;
+    }
+
     public void paint(Graphics g) {
         if (notEmpty()) {
             g.setColor(Color.RED);
             g.drawRect(rect.x-1, rect.y-1, rect.width+1, rect.height+1);
-//            g.setColor(Color.BLUE);
-//            g.drawRect(range.x, range.y, range.width, range.height);
 
-            if (subtitle != null) {
+            if (displaySubtitles && subtitle != null) {
                 switch (MainParam.getInstance().getSubtitleSwitch()) {
                     case Off -> {}
                     case Original -> subtitle.paintOriginalText(g, rect);
