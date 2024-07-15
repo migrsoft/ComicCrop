@@ -1,7 +1,5 @@
 package com.migrsoft.main;
 
-import com.migrsoft.image.PicWorkerParam;
-
 import java.awt.*;
 import java.awt.font.FontRenderContext;
 import java.awt.geom.Rectangle2D;
@@ -185,7 +183,7 @@ public class LongImage {
                     }
 
                     // 绘制字幕
-                    if (MainParam.getInstance().getSubtitleSwitch() != PicWorkerParam.SubtitleSwitch.Off) {
+                    if (MainParam.getInstance().getSubtitleSwitch() != MainParam.SubtitleSwitch.Off) {
                         java.util.List<SubtitleItem> subtitles = subtitleManager.getListByName(ii.name);
                         for (SubtitleItem si : subtitles) {
                             if (si == subtitle) continue;

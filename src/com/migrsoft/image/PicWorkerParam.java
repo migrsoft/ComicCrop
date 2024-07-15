@@ -2,20 +2,6 @@ package com.migrsoft.image;
 
 public class PicWorkerParam {
 
-	public enum SubtitleSwitch {
-		Off,
-		Original,
-		Chinese,
-	}
-
-	private SubtitleSwitch subtitleSwitch = SubtitleSwitch.Original;
-	public SubtitleSwitch getSubtitleSwitch() {
-		return subtitleSwitch;
-	}
-	public void setSubtitleSwitch(SubtitleSwitch subtitleSwitch) {
-		this.subtitleSwitch = subtitleSwitch;
-	}
-
 	public enum ImageFormat {
 		Png,
 		Jpeg,

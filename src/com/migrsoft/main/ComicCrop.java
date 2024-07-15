@@ -15,7 +15,6 @@ import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.filechooser.FileFilter;
 
-import com.migrsoft.image.PicWorkerParam;
 import com.migrsoft.main.ProgressDlg.TaskType;
 import com.migrsoft.utils.Info;
 
@@ -82,12 +81,12 @@ public class ComicCrop extends JFrame {
 			}
 
 			@Override
-			public PicWorkerParam.SubtitleSwitch getSubtitleSwitch() {
+			public MainParam.SubtitleSwitch getSubtitleSwitch() {
 				return MainParam.getInstance().getSubtitleSwitch();
 			}
 
 			@Override
-			public void onSubtitle(PicWorkerParam.SubtitleSwitch value) {
+			public void onSubtitle(MainParam.SubtitleSwitch value) {
 				MainParam.getInstance().setSubtitleSwitch(value);
 				repaint();
 			}
@@ -177,12 +176,12 @@ public class ComicCrop extends JFrame {
 			}
 
 			@Override
-			public PicWorkerParam.ImageFormat getImageFormat() {
+			public MainParam.ImageFormat getImageFormat() {
 				return MainParam.getInstance().getImageFormat();
 			}
 
 			@Override
-			public void onImageFormat(PicWorkerParam.ImageFormat format) {
+			public void onImageFormat(MainParam.ImageFormat format) {
 				MainParam.getInstance().setImageFormat(format);
 			}
 

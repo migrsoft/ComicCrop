@@ -1,8 +1,7 @@
 package test;
 
 import com.migrsoft.utils.Info;
-import org.junit.jupiter.api.Test;
-
+import org.junit.Test;
 import java.awt.*;
 
 public class FunctionTest {

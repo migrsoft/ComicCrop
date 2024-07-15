@@ -1,7 +1,5 @@
 package com.migrsoft.main;
 
-import com.migrsoft.image.PicWorkerParam;
-
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -13,8 +11,8 @@ public class MenuBarInViewMode {
         void onFileOpenComic();
         void onFileSaveSubtitle();
 
-        PicWorkerParam.SubtitleSwitch getSubtitleSwitch();
-        void onSubtitle(PicWorkerParam.SubtitleSwitch value);
+        MainParam.SubtitleSwitch getSubtitleSwitch();
+        void onSubtitle(MainParam.SubtitleSwitch value);
 
         boolean getPageSpacingSwitch();
         void setSpacingSwitch(boolean value);
@@ -40,9 +38,9 @@ public class MenuBarInViewMode {
                     case StringResources.MENU_FILE_OPEN -> cb.onFileOpen();
                     case StringResources.MENU_FILE_OPEN_COMIC -> cb.onFileOpenComic();
                     case StringResources.MENU_FILE_SAVE_SUBTITLE -> cb.onFileSaveSubtitle();
-                    case StringResources.MENU_SUBTITLE_NO -> cb.onSubtitle(PicWorkerParam.SubtitleSwitch.Off);
-                    case StringResources.MENU_SUBTITLE_ORIGIN -> cb.onSubtitle(PicWorkerParam.SubtitleSwitch.Original);
-                    case StringResources.MENU_SUBTITLE_CHINESE -> cb.onSubtitle(PicWorkerParam.SubtitleSwitch.Chinese);
+                    case StringResources.MENU_SUBTITLE_NO -> cb.onSubtitle(MainParam.SubtitleSwitch.Off);
+                    case StringResources.MENU_SUBTITLE_ORIGIN -> cb.onSubtitle(MainParam.SubtitleSwitch.Original);
+                    case StringResources.MENU_SUBTITLE_CHINESE -> cb.onSubtitle(MainParam.SubtitleSwitch.Chinese);
                     case StringResources.MENU_PAGE_SPACING -> {
                         JCheckBoxMenuItem item = (JCheckBoxMenuItem) e.getSource();
                         cb.setSpacingSwitch(item.isSelected());

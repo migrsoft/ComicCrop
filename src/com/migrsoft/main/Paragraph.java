@@ -1,6 +1,11 @@
 package com.migrsoft.main;
 
 import java.awt.*;
+import java.awt.font.FontRenderContext;
+import java.awt.font.LineBreakMeasurer;
+import java.awt.font.TextLayout;
+import java.text.AttributedCharacterIterator;
+import java.text.AttributedString;
 import java.util.ArrayList;
 
 public class Paragraph {
@@ -156,12 +161,10 @@ public class Paragraph {
         int lineWidth = 0;
         int start = 0;
         int i = 0;
-        int lb;
         while (i < text.length()) {
             charWidth = metrics.charWidth(text.charAt(i));
             if (lineWidth + charWidth > width) {
                 getBreakPoint(i);
-//                System.out.println("break " + i + " " + text.charAt(i));
                 if (breakPoint > start) {
                     lines.add(text.substring(start, breakPoint));
                     i = breakPoint;
@@ -178,13 +181,8 @@ public class Paragraph {
                 lineWidth = 0;
                 continue;
             }
-            lb = breakPoint;
             getBreakPoint(i);
-            if (lb != breakPoint) {
-//                System.out.println(breakPoint + " (" + text.charAt(breakPoint) + ") " + lastType);
-            }
             lineWidth += charWidth;
-//            System.out.println(i + " " + text.charAt(i) + " " + lineWidth + " " + breakPoint);
             i++;
         }
         if (start < i) {
@@ -195,6 +193,21 @@ public class Paragraph {
     public void print() {
         for (String s : lines) {
             System.out.println(s);
+        }
+    }
+
+    public void layout(Graphics g) {
+        Graphics2D g2 = (Graphics2D) g;
+        FontRenderContext frc = g2.getFontRenderContext();
+        AttributedString attrText = new AttributedString(text);
+        AttributedCharacterIterator attrIt = attrText.getIterator();
+        LineBreakMeasurer measurer = new LineBreakMeasurer(attrIt, frc);
+        measurer.setPosition(attrIt.getBeginIndex());
+        int head;
+        lines.clear();
+        while ((head = measurer.getPosition()) < attrIt.getEndIndex()) {
+            TextLayout tl = measurer.nextLayout(width);
+            lines.add(text.substring(head, head + tl.getCharacterCount()));
         }
     }
 }

@@ -12,6 +12,20 @@ public class MainParam extends PicWorkerParam {
 		return instance;
 	}
 
+	public enum SubtitleSwitch {
+		Off,
+		Original,
+		Chinese,
+	}
+
+	private SubtitleSwitch subtitleSwitch = SubtitleSwitch.Chinese;
+	public SubtitleSwitch getSubtitleSwitch() {
+		return subtitleSwitch;
+	}
+	public void setSubtitleSwitch(SubtitleSwitch subtitleSwitch) {
+		this.subtitleSwitch = subtitleSwitch;
+	}
+
 	private boolean autoGrayLevel;
 	
 	private final int maxThreads;
