@@ -25,4 +25,9 @@ public class FunctionTest {
     public void getInfo() {
         System.out.println(Info.getOsType());
     }
+
+    @Test
+    public void getCurrentPath() {
+        System.out.println(Info.getCurrentPath());
+    }
 }

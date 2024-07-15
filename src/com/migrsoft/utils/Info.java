@@ -1,5 +1,7 @@
 package com.migrsoft.utils;
 
+import java.nio.file.Paths;
+
 public class Info {
 
 	public enum OS {
@@ -9,7 +11,7 @@ public class Info {
 		Linux,
 	}
 
-	static public OS getOsType() {
+	public static OS getOsType() {
 		String os = System.getProperty("os.name");
 		if (os.startsWith("Mac")) {
 			return OS.macOS;
@@ -20,5 +22,9 @@ public class Info {
 		} else {
 			return OS.Unknown;
 		}		
+	}
+
+	public static String getCurrentPath() {
+		return Paths.get(".").toAbsolutePath().normalize().toString();
 	}
 }

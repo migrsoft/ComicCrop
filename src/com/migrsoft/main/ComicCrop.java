@@ -17,6 +17,7 @@ import javax.swing.filechooser.FileFilter;
 
 import com.migrsoft.image.PicWorkerParam;
 import com.migrsoft.main.ProgressDlg.TaskType;
+import com.migrsoft.utils.Info;
 
 /**
  * @author wuyulun
@@ -503,11 +504,10 @@ public class ComicCrop extends JFrame {
 			
 		});
 		dlg.setMultiSelectionEnabled(true);
-		if (lastPath != null) {
+		if (!lastPath.isEmpty()) {
 			dlg.setCurrentDirectory(new File(lastPath));
 		} else {
-			String currentPath = System.getProperty("user.dir");
-			dlg.setCurrentDirectory(new File(currentPath));
+			dlg.setCurrentDirectory(new File(Info.getCurrentPath()));
 		}
 		int r = dlg.showOpenDialog(this);
 		if (r == JFileChooser.APPROVE_OPTION) {
@@ -553,11 +553,10 @@ public class ComicCrop extends JFrame {
 
 		});
 		dlg.setMultiSelectionEnabled(false);
-		if (lastPath != null) {
+		if (!lastPath.isEmpty()) {
 			dlg.setCurrentDirectory(new File(lastPath));
 		} else {
-			String currentPath = System.getProperty("user.dir");
-			dlg.setCurrentDirectory(new File(currentPath));
+			dlg.setCurrentDirectory(new File(Info.getCurrentPath()));
 		}
 		int r = dlg.showOpenDialog(this);
 		if (r == JFileChooser.APPROVE_OPTION) {
