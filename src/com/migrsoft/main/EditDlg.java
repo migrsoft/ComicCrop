@@ -14,16 +14,17 @@ public class EditDlg extends JDialog {
     private final Translator translator;
 
     public interface Callback {
+        void onEllipse(boolean value);
         void onSave();
     }
 
-    private Callback callback = null;
+    private Callback cb = null;
 
-    public void setCallback(Callback callback) {
-        this.callback = callback;
+    public void setCallback(Callback cb) {
+        this.cb = cb;
     }
 
-    public EditDlg(Frame owner) {
+    public EditDlg(Frame owner, boolean isEllipse) {
         super(owner, StringResources.MENU_POP_EDIT, true);
 
         setSize(400, 300);
@@ -55,6 +56,15 @@ public class EditDlg extends JDialog {
         // Add the panel to the dialog
         add(panel, BorderLayout.CENTER);
 
+        JCheckBox ellipseButton = new JCheckBox(StringResources.BUTTON_ELLIPSE, isEllipse);
+        ellipseButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                JCheckBox box = (JCheckBox) e.getSource();
+                cb.onEllipse(box.isSelected());
+            }
+        });
+
         JButton transButton = new JButton(StringResources.BUTTON_TRANSLATE);
         transButton.addActionListener(new ActionListener() {
             @Override
@@ -73,8 +83,8 @@ public class EditDlg extends JDialog {
         saveButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                if (callback != null) {
-                    callback.onSave();
+                if (cb != null) {
+                    cb.onSave();
                 }
                 dispose();
             }
@@ -91,6 +101,7 @@ public class EditDlg extends JDialog {
 
         // Add the close button to the dialog
         JPanel buttonPanel = new JPanel();
+        buttonPanel.add(ellipseButton);
         buttonPanel.add(transButton);
         buttonPanel.add(saveButton);
         buttonPanel.add(closeButton);

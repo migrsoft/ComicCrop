@@ -42,7 +42,8 @@ public class StringResources {
     public static final String MENU_TASK_CROP_B = "Batch Operation: Rotate + Crop + Scale";
     public static final String MENU_TASK_CROP_C = "Batch Operation: Rotate + Crop + Scale by Width";
 
-    public static final String MENU_POP_CREATE = "Create Subtitle";
+    public static final String MENU_POP_CREATE_RECT = "Create Subtitle (Rectangle)";
+    public static final String MENU_POP_CREATE_ELLIPSE = "Create Subtitle (Ellipse)";
     public static final String MENU_POP_DELETE = "Delete Subtitle";
     public static final String MENU_POP_OCR = "OCR";
     public static final String MENU_POP_EDIT = "Edit";
@@ -51,6 +52,7 @@ public class StringResources {
     public static final String MENU_HELP_MANUAL = "Manual";
     public static final String MENU_HELP_ABOUT = "About ...";
 
+    public static final String BUTTON_ELLIPSE = "Ellipse";
     public static final String BUTTON_TRANSLATE = "Translate";
     public static final String BUTTON_SAVE = "Save";
     public static final String BUTTON_CANCEL = "Cancel";

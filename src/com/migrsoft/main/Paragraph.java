@@ -4,11 +4,14 @@ import java.awt.*;
 import java.awt.font.FontRenderContext;
 import java.awt.font.LineBreakMeasurer;
 import java.awt.font.TextLayout;
+import java.awt.geom.Point2D;
 import java.text.AttributedCharacterIterator;
 import java.text.AttributedString;
 import java.util.ArrayList;
 
 public class Paragraph {
+
+    public boolean debug = false;
 
     private enum Type {
         English,
@@ -209,5 +212,81 @@ public class Paragraph {
             TextLayout tl = measurer.nextLayout(width);
             lines.add(text.substring(head, head + tl.getCharacterCount()));
         }
+    }
+
+    private int getAvailableWidth(Rectangle rect, java.util.List<Point2D.Double> points) {
+        int radius = rect.width / 2;
+//        System.out.println(rect);
+        for (Point2D.Double p : points) {
+            if (rect.contains(p)) {
+                int r = Math.abs((int) (rect.x + (double) rect.width / 2 - p.x));
+//                System.out.println("radius:" + radius + " r:" + r);
+                radius = Math.min(radius, r);
+            }
+        }
+        return radius * 2;
+    }
+
+    public boolean layoutInEllipse(Rectangle rect, java.util.List<Point2D.Double> points, Graphics g) {
+        final int fontHeight = metrics.getHeight();
+        final int minWidth = metrics.charWidth('汉') * 2;
+        int numLines = rect.height / fontHeight;
+        int y = rect.y + (rect.height - fontHeight * numLines) / 2;
+        Rectangle lineRect = new Rectangle(rect.x, y, rect.width, fontHeight);
+        int maxWidth = getAvailableWidth(lineRect, points);
+        lines.clear();
+        while (maxWidth < minWidth && numLines > 1) {
+            numLines--;
+            y = rect.y + (rect.height - fontHeight * numLines) / 2;
+            lineRect.setLocation(lineRect.x, y);
+            maxWidth = getAvailableWidth(lineRect, points);
+        }
+        maxWidth = Math.max(maxWidth, minWidth);
+
+        lastType = Type.Other;
+        breakPoint = 0;
+        next = 0;
+
+        int charWidth = 12;
+        int lineWidth = 0;
+        int start = 0;
+        int i = 0;
+        while (i < text.length()) {
+            charWidth = metrics.charWidth(text.charAt(i));
+            if (lineWidth + charWidth > maxWidth) {
+                if (debug) {
+                    g.drawLine(rect.x + (rect.width - maxWidth) / 2, rect.y, rect.x + maxWidth, rect.y);
+                }
+                getBreakPoint(i);
+                if (breakPoint > start) {
+                    lines.add(text.substring(start, breakPoint));
+                    i = breakPoint;
+                } else {
+                    lines.add(text.substring(start, i));
+                }
+
+                while (i < text.length() && text.charAt(i) == ' ') i++;
+                start = i;
+                if (i == text.length()) break;
+                breakPoint = i;
+                lastType = getWordType(i);
+                lineWidth = 0;
+
+                lineRect.setLocation(lineRect.x, lineRect.y + fontHeight);
+                maxWidth = getAvailableWidth(lineRect, points);
+                maxWidth = Math.max(maxWidth, minWidth);
+                continue;
+            }
+            getBreakPoint(i);
+            lineWidth += charWidth;
+            i++;
+        }
+        if (start < i) {
+            if (debug) {
+                g.drawLine(rect.x + (rect.width - maxWidth) / 2, rect.y, rect.x + maxWidth, rect.y);
+            }
+            lines.add(text.substring(start, i));
+        }
+        return lines.size() <= numLines;
     }
 }

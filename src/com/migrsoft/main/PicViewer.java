@@ -14,7 +14,8 @@ public class PicViewer extends JPanel
 
     private enum Mode {
         View,
-        Create,
+        CreateRect,
+        CreateEllipse,
         Edit,
         EditDlg,
         Move,
@@ -48,8 +49,9 @@ public class PicViewer extends JPanel
                     handleClickSubtitles(e.getPoint());
                     repaint();
                 }
-                case Create -> {
+                case CreateRect, CreateEllipse -> {
                     saveSelectedSubtitles();
+                    if (currentMode == Mode.CreateEllipse) selectBox.setEllipse(true);
                     selectBox.setTopLeft(e.getX(), e.getY());
                     currentImageItem = longImage.getSelectedImage(e.getY() + viewPort.y);
                     repaint();
@@ -83,7 +85,7 @@ public class PicViewer extends JPanel
     @Override
     public void mouseReleased(MouseEvent e) {
         switch (currentMode) {
-            case Create -> {
+            case CreateRect, CreateEllipse -> {
                 currentMode = Mode.Edit;
             }
             case Move -> {
@@ -112,7 +114,7 @@ public class PicViewer extends JPanel
     @Override
     public void mouseDragged(MouseEvent e) {
         switch (currentMode) {
-            case Create -> {
+            case CreateRect, CreateEllipse -> {
                 if (selectBox.dragBottomRight(e.getX(), e.getY())) {
                     repaint();
                 }
@@ -274,7 +276,8 @@ public class PicViewer extends JPanel
             @Override
             public void actionPerformed(ActionEvent e) {
                 switch (e.getActionCommand()) {
-                    case StringResources.MENU_POP_CREATE -> { currentMode = Mode.Create; }
+                    case StringResources.MENU_POP_CREATE_RECT -> { currentMode = Mode.CreateRect; }
+                    case StringResources.MENU_POP_CREATE_ELLIPSE -> { currentMode = Mode.CreateEllipse; }
                     case StringResources.MENU_POP_DELETE -> onPopMenuDelete();
                     case StringResources.MENU_POP_OCR -> onPopMenuOcr();
                     case StringResources.MENU_POP_EDIT -> onPopMenuEdit();
@@ -283,15 +286,18 @@ public class PicViewer extends JPanel
         };
 
         popMenu = new JPopupMenu();
-        JMenuItem menuCreate = new JMenuItem(StringResources.MENU_POP_CREATE);
+        JMenuItem menuCreateRect = new JMenuItem(StringResources.MENU_POP_CREATE_RECT);
+        JMenuItem menuCreateEllipse = new JMenuItem(StringResources.MENU_POP_CREATE_ELLIPSE);
         JMenuItem menuDelete = new JMenuItem(StringResources.MENU_POP_DELETE);
         JMenuItem menuOcr = new JMenuItem(StringResources.MENU_POP_OCR);
         JMenuItem menuEdit = new JMenuItem(StringResources.MENU_POP_EDIT);
-        menuCreate.addActionListener(popMenuHandler);
+        menuCreateRect.addActionListener(popMenuHandler);
+        menuCreateEllipse.addActionListener(popMenuHandler);
         menuDelete.addActionListener(popMenuHandler);
         menuOcr.addActionListener(popMenuHandler);
         menuEdit.addActionListener(popMenuHandler);
-        popMenu.add(menuCreate);
+        popMenu.add(menuCreateRect);
+        popMenu.add(menuCreateEllipse);
         popMenu.add(menuDelete);
         popMenu.add(menuOcr);
         popMenu.add(menuEdit);
@@ -318,10 +324,20 @@ public class PicViewer extends JPanel
         if (selectBox.notEmpty()) {
             currentMode = Mode.EditDlg;
             repaint();
-            final EditDlg dlg = new EditDlg(ComicCrop.getInstance());
+            final EditDlg dlg = new EditDlg(ComicCrop.getInstance(), selectBox.isEllipse());
             dlg.setOriginalText(selectBox.getOriginalText());
             dlg.setTranslatedText(selectBox.getTranslatedText());
             dlg.setCallback(new EditDlg.Callback() {
+                @Override
+                public void onEllipse(boolean value) {
+                    if (selectBox.isEllipse() != value) {
+                        selectBox.setEllipse(value);
+                        selectBox.setModified();
+                        currentMode = Mode.View;
+                        repaint();
+                    }
+                }
+
                 @Override
                 public void onSave() {
                     selectBox.updateOriginalText(dlg.getOriginalText());
@@ -360,7 +376,7 @@ public class PicViewer extends JPanel
         selectBox.paint(g);
 
         // 显示选择的图片
-        if ((currentMode == Mode.Create || currentMode == Mode.EditDlg)
+        if ((currentMode == Mode.CreateRect || currentMode == Mode.EditDlg)
                 && currentImageItem != null && selectBox.notEmpty()) {
             Rectangle r = longImage.rectToImage(currentImageItem, selectBox.rect, viewPort);
             g2.drawImage(currentImageItem.image,

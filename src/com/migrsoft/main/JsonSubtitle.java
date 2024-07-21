@@ -7,6 +7,7 @@ public class JsonSubtitle {
     private String lang2;
     private int size1;
     private int size2;
+    private int shape; // 0:rectangle 1:ellipse
 
     public String getLang1() {
         return lang1;
@@ -52,8 +53,17 @@ public class JsonSubtitle {
     public String toString() {
         return "JsonSubtitle{" +
                 rect +
+                "(" + shape + ") " +
                 lang1 + "(" + size1 + ")" +
                 lang2 + "(" + size2 + ")" +
                 "}";
+    }
+
+    public int getShape() {
+        return shape;
+    }
+
+    public void setShape(int shape) {
+        this.shape = shape;
     }
 }

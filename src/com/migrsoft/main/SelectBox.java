@@ -1,6 +1,7 @@
 package com.migrsoft.main;
 
 import java.awt.*;
+import java.awt.geom.Ellipse2D;
 
 public class SelectBox {
 
@@ -35,6 +36,14 @@ public class SelectBox {
         if (subtitle == null) {
             subtitle = new SubtitleItem();
         }
+    }
+
+    public void setEllipse(boolean value) {
+        subtitle.setEllipse(value);
+    }
+
+    public boolean isEllipse() {
+        return subtitle.isEllipse();
     }
 
     public void setTopLeft(int x, int y) {
@@ -133,15 +142,19 @@ public class SelectBox {
 
     public void paint(Graphics g) {
         if (notEmpty()) {
-            g.setColor(Color.RED);
-            g.drawRect(rect.x-1, rect.y-1, rect.width+1, rect.height+1);
-
             if (displaySubtitles && subtitle != null) {
                 switch (MainParam.getInstance().getSubtitleSwitch()) {
                     case Off -> {}
                     case Original -> subtitle.paintOriginalText(g, rect);
                     case Chinese -> subtitle.paintTranslatedText(g, rect);
                 }
+            }
+
+            g.setColor(Color.RED);
+            g.drawRect(rect.x-1, rect.y-1, rect.width+1, rect.height+1);
+            if (subtitle != null && subtitle.isEllipse()) {
+                Ellipse2D ellipse = new Ellipse2D.Double(rect.x, rect.y, rect.width, rect.height);
+                ((Graphics2D)g).draw(ellipse);
             }
         }
     }
