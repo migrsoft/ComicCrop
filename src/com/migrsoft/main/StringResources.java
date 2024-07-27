@@ -3,7 +3,7 @@ package com.migrsoft.main;
 public class StringResources {
 
     public static final String APP_TITLE = "ComicCrop";
-    public static final String VERSION = "2.0.0";
+    public static final String VERSION = "2.0.1";
 
     public static final String FONT_MAIN = "SansSerif";
     public static final String FONT_COMIC = "Comic Sans MS";
